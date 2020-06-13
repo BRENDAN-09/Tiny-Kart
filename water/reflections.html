@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>Reflections</title>
+  <link type="text/css" rel="stylesheet" href="../main.css">
+</head>
+
+<body>
+  <script src="../lib/three.min.js"></script>
+  <script src="../lib/dat.gui.js"></script>
+  <script src="../lib/GLTFLoader.js"></script>
+  <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+			void main()
+			{
+				vec4 mvPosition = modelMatrix * vec4( position, 1.0 );
+        //worldPosition = mvPosition.xyz;
+        vUv = uv;
+				gl_Position = projectionMatrix * viewMatrix * mvPosition;
+			}
+	</script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+        varying vec2 vUv;
+        uniform sampler2D map;
+        uniform float time;
+        uniform float intensity;
+        uniform float minCut;
+        uniform float maxCut;
+        const vec3 blue1 = vec3(0.094,0.567,0.863);
+        const vec3 blue2 = vec3(0.415,0.772,0.725);
+  			void main( void ) {
+          vec2 disp = texture2D(map,vUv-vec2(time*0.3+0.2,time*-0.05+0.4)).xy*intensity;
+          float col1 = texture2D(map,vUv*1.2+vec2(time*0.1,time*0.1)+disp).x;
+          float col2 = texture2D(map,vUv*0.8-vec2(time*0.2+0.2,time*0.05+0.4)+disp).x*-1.0+1.0;
+          float col3 = texture2D(map,vUv*0.2+vec2(time*0.1,time*0.1)+disp).x;
+          float col4 = texture2D(map,vUv*0.1-vec2(time*0.2+0.2,time*0.05+0.4)+disp).x*-1.0+1.0;
+          float col = mix(col1,col2,0.5);
+          float bcol = mix(col3,col4,0.5);
+          col = (col - 0.5 )*0.9 + 0.5;
+          if(col>minCut && col < maxCut){
+            col = 0.0;
+          }
+  				gl_FragColor = vec4(mix(blue1,blue2,bcol)+vec3(col),1.0);
+  			}
+  </script>
+
+  <script id="pf" type="x-shader/x-fragment">
+      uniform sampler2D map;
+      varying vec2 vUv;
+      void main( void ) {
+        vec4 basCol = texture2D(map,vUv);
+        gl_FragColor = vec4(basCol);
+      }
+    </script>
+
+
+    <script id="pv" type="x-shader/x-vertex">
+      varying vec2 vUv;
+      void main()
+      {
+        vUv = uv;
+        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    </script>
+  <script src="reflections.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,572 @@
+newmtl mat1
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_Snow.tga
+
+newmtl mat2
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Wood.tga
+
+newmtl mat3
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_Wood_Ramp.tga
+
+newmtl mat4
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd BoostPanel_Edge.tga
+
+newmtl mat5
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd ef_rainbowRed2.tga
+
+newmtl mat6
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Log.tga
+
+newmtl mat7
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Log_End.tga
+
+newmtl mat8
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Rock.tga
+
+newmtl mat9
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Mesh.tga
+
+newmtl mat10
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Tree.tga
+
+newmtl mat11
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Signboard.tga
+
+newmtl mat12
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Signboard_Post.tga
+
+newmtl mat13
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Rock_Cave.tga
+
+newmtl mat14
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_Snow_Dark.tga
+
+newmtl mat15
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_Ice.tga
+
+newmtl mat16
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Ice_Ledge.tga
+
+newmtl mat17
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd yo_wave_tex.tga
+
+newmtl mat18
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_Snow_Ledge.tga
+
+newmtl mat19
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Sign_Caution.tga
+
+newmtl mat20
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_Snow_Edge.tga
+
+newmtl mat21
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Fence.tga
+
+newmtl mat22
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Tower.tga
+
+newmtl mat23
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd FinishLine.tga
+
+newmtl mat24
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd MKBanner.tga
+
+newmtl mat25
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_Tiles.tga
+
+newmtl mat26
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Bricks.tga
+
+newmtl mat27
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_WoodBridge.tga
+
+newmtl mat28
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Wood_Base.tga
+
+newmtl mat29
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_Wood_Village.tga
+
+newmtl mat30
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Sign_ACV.tga
+
+newmtl mat31
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Cottage.tga
+
+newmtl mat32
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Cottage_Dark.tga
+
+newmtl mat33
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Cottage_Window.tga
+
+newmtl mat34
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Cottage_Door.tga
+
+newmtl mat35
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Stone.tga
+
+newmtl mat36
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd ef_volcSurfaceMip3.tga
+
+newmtl mat37
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Ring.tga
+
+newmtl mat38
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Sign_AlpineVolcano.tga
+
+newmtl mat39
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Sign_AlpinePeakGP.tga
+
+newmtl mat40
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Sign_Arrow.tga
+
+newmtl mat41
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Lantern.tga
+
+newmtl mat42
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd BG_Trees.tga
+
+newmtl mat43
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd BG_Hills.tga
+
+newmtl mat44
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Mountain.tga
+
+newmtl mat45
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd arrowShMrr.tga
+
+newmtl mat46
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_Cave.tga
+
+newmtl mat47
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_WoodBridge_Dark.tga
+
+newmtl mat48
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Wood_Darker.tga
+
+newmtl mat49
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Rock_Cave2.tga
+
+newmtl mat50
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Road_CaveMix.tga
+
+newmtl mat51
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd Wall_Wood_Dark.tga
+
+newmtl mat52
+	Ns 10
+	Ni 1.0
+	d 1.0
+	Tf 1 1 1
+	illum 2
+	Ka 0.5 0.5 0.5
+	Kd 0.9 0.9 0.9
+	Ks 0.0 0.0 0.0
+	map_Kd dst_lake_futi.tga
+

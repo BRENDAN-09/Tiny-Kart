@@ -1,0 +1,2262 @@
+#KMP  <<<  The first 4 characters '#KMP' are the magic for a KMP text file.
+#     <<<  Don't remove them!
+#
+###############################################################################
+#
+# This is a textual representation of a KMP file used in Nintendos "Mario Kart
+# Wii". "Wiimms SZS Tools" can convert binary (raw) and text KMP files in both
+# directions. The text parser supports variables, C like expressions and nested
+# IF-THEN-ELSE and LOOP structures.
+#
+# Info about the general parser syntax and semantics:
+#   * https://szs.wiimm.de/doc/syntax
+#
+# Info about the KMP text syntax and semantics:
+#   * https://szs.wiimm.de/doc/kmp/syntax
+#
+# Reference list of KMP parser functions:
+#   * https://szs.wiimm.de/doc/kmp/func
+#
+# Info about the KMP file format:
+#   * https://szs.wiimm.de/r/wiki/KMP
+#
+# Hint:
+#   Set one of the options --no-header (-H) or --brief (-B) while decoding
+#   to suppress this generel description. The --brief option will also disable
+#   info parts in the different sections. If --brief is set twice, the output
+#   of the unneded sections CKPH, ENPH and ITPH is completly suppressed.
+#
+
+#
+###############################################################################
+
+[SETUP]
+# This is the general setup and info section. Some parameters are preceeded by
+# a hash ('#') to signal the informative only status. This section should
+# always be the first one.
+
+# Identify the tool and version, that have written this file:
+TOOL     = wkmpt
+SYSTEM   = mac
+VERSION  = 1.64a
+REVISION = 7680
+DATE     = 2018-11-23
+
+# If the following info string is not empty it will be
+# inserted at the end of the KMP file behind all sections:
+INFO = ""
+
+# Unknown value at offset 0x0c of the file:
+UNKNOWN-0x0c = 0x9d8
+
+# If set to '1', objects with road features will be added to the internal KCL
+# for the automatic height calculations. Like --kcl +add-road
+KCL-FALL-ADD-ROAD = 0
+
+# Define the battle mode for the next text output:
+#  0 : Disable battle support
+#  1 : Enable battle support
+#  2 : Enable exclusive battle support => remove unneeded sections and parameters
+# This setting is overiden by option --battle.
+BATTLE-MODE = 0
+
+# Experimental feature in progress!
+# If set to 1, an additional KMP section named »WIM0« is created. This new
+# section should contain data of this text file like names or flags, that can
+# be restored later. At the moment, the new section contains only dummy data
+# for compatibility tests with other tools and the Wii. Option --wim0 can
+# override this setting.
+KMP-WIM0 = 0
+
+# Statistics: Entry counter for each section:
+ # N-AREA =     5
+ # N-CAME =     3
+ # N-CKPH =     1
+ # N-CKPT =    22
+ # N-CNPT =     0
+ # N-ENPH =     1
+ # N-ENPT =    64
+ # N-GOBJ =   196
+ # N-ITPH =     9
+ # N-ITPT =    90
+ # N-JGPT =    22
+ # N-KTPT =     1
+ # N-MSPT =     1
+ # N-POTI =     6,  105
+ # N-STGI =     1
+
+#------------------------------------------------------------------------------
+
+# These are the default settings for route objects:
+# @ROUTE-OBJECT       = o$obakeblockSFCc
+# @ROUTE-OBJECT-SHIFT = v( 0.00, 0.00, 0.00 )
+# @ROUTE-OBJECT-SCALE = v( 0.20, 0.40, 1.00 )
+
+
+#
+###############################################################################
+
+# This second part of section [SETUP] is an example to prepare a KMP source
+# file for conditional encoding (compiling). The idea is, that the user
+# defines variables with the "--const name=value" option while calling one of
+# the tools 'wszst' or 'wkmpt' to create different KMP files.
+#
+# Set option --no-param (-P) to disable this parameter part.
+#
+# This example scans 7 parameters. All variables are not special for the KMP
+# encoder and fully under user control: The user can remove or rename them or
+# can add more parameters. But this values have predefined meanings:
+#
+#   slot   : Create a KMP for the entered slot.
+#            The default value 0 means: Design for allmost all slots.
+#            Use it with @if..@else..@endif to support special slots.
+#
+#   d      : Create a KMP file for a "_d" variant of a track.
+#            Use it with @if..@else..@endif to skip objects.
+#
+#   arena  : If >0, then create a battle arena instead of a racing track.
+#
+#   test   : If  >0, then test mode is enabled.
+#            If <=0, test mode and also all parameters below are disabled.
+#
+#   ocam   : If >0 and also test>0, then enable test of opening camera #
+#            (endless looping until button 'A' is pressed). With the default
+#            value 0 all opening scenes are looped. If test mode is disabled,
+#            the cameras work as usual.
+#
+#   showrt : If set and also test>0, points of different sections ar shown as
+#            item boxes and all standard item boxes are disabled. Set one or more
+#            of the following bits to show the points of the section:
+#              1 : ENPT
+#              2 : ITPT
+#              4 : JGPT
+#              8 : CNPT
+#             16 : MSPT
+#             32 : POTI
+#             -1 : enable all section (all bits set!)
+#
+#   showck : If set and also test>0, show check points as trees (or other
+#            user defined objects). See section [CKPT] for details.
+#
+#   laps   : It controls the number of laps by changing the settinge of the
+#            check point modes (CKPT/@AUTO-MODE). Allowed values are:
+#              0: Make the race a short as possible.
+#              1: Finish the race after 1 lap
+#              3: Finish the race after 3 laps (default).
+#              4: Never finish the race (unlimited).
+#            Value 3 is used, if test mode is disabled.
+#
+
+# First we define default values (if not set by --const) for all parameters:
+
+  @def slot	?= 0	# Enable support for special slots
+  @def d	?= 0	# Enable support for _d files
+  @def arena	?= 0	# Enable battle arena support and allow different modes
+  @def test	?= 0	# Enable test mode
+  @def ocam	?= 0	# Test opening cam, only relevant if test>0
+  @def showrt   ?= 0    # Show item boxes for route points.
+			# Only relevant if test>0. Set bit combination:
+			#   1:ENPT, 2:ITPT, 4:JGPT, 8:CNPT, 0x10:MSPT, 0x20:POTI (-1:all)
+  @def showck   ?= 0    # Show objects a check point positions if test>0.
+			#   0:off, 1:mandatory, 2:all, 3=left+right
+  @def laps	?= 3	# Number of laps (0|1|3|4), only relevant if test>0
+
+# In a second step, global mode variables are defined and normalized.
+# All conditions in this file should use these variables.
+
+  @gdef mode$slot	= slot > 0 ? slot : 0
+  @gdef mode$d		= d > 0
+  @gdef mode$arena	= arena > 0 ? arena : 0
+
+  @gdef mode$test	= test > 0 ? test : 0
+  @gdef mode$ocam	= mode$test && ocam >= 1 ? ocam : 0
+  @gdef mode$laps	= mode$test && laps >= 0 ? laps : 3
+  @gdef mode$showrt	= mode$test ? showrt : 0
+  @gdef mode$showck	= mode$test ? showck : 0
+  @gdef mode$automode	= select(mode$laps,AM$SHORT,AM$1LAP,AM$OFF,AM$OFF,AM$UNLIMIT)
+
+# Now the tools 'wszst' and 'wkmpt' can be called with the --const (or short
+# -c) option for a conditional encoding. Example:
+#	-c test=12,ocam=2,laps=0
+# Enable test mode 12, show opening camera 2 endless (until pressing A) and
+# finish the race very fast to view the finish cameras very soon.
+
+#
+###############################################################################
+# Macros
+
+@macro itembox
+    #-------------------------------------------------------------------
+    # This macro helps to place N itemboxes in a row between
+    # 2 points with optimal height.
+    #-------------------------------------------------------------------
+    # Syntax:
+    #	@:ITEMBOX(fall,1,pos1)
+    #	@:ITEMBOX(fall,n,pos1,pos2)
+    #	@:ITEMBOX(fall,n,pos1,pos2,factor)
+    #	@:ITEMBOX(fall,n,pos1,pos2,factor,second)
+    #	@:ITEMBOX(fall,n,pos1,pos2,factor,second,itemtype)
+    #-------------------------------------------------------------------
+    # Parameters:
+    #	FALL	: If >0: Raise the box by FALL and let it fall to
+    #		: the road to get the optimal height.
+    #	N	: If >0: Create N itemboxes between POS1 and POS2.
+    #	POS1	: Position of first itembox.
+    #	POS2	: Position of last itembox.
+    #	FACTOR	: If set and >0.01: Create a line from POS1 to POS2.
+    #		: Enlarge the line by FACTOR in both directions.
+    #		: Then use the new points as new POS1 and POS2.
+    #   SECOND	: If set and >1: Move each second itembox into a second
+    #		: row. The distance between both rows is SECOND units.
+    #   ITEMTYPE: Use this value for player and enemy items.
+    #-------------------------------------------------------------------
+    # Examples:
+    #	@:itembox( 200, 1, point )
+    #	@:itembox(   0, 3, point1, point2, 0.9 )
+    #	@:itembox( 500, 8, point1, point2, 1, 250, ITEM$3GREEN )
+    #	@:itembox( 200, 4, v(2000,1000,3000), v(3000,1000,5000) )
+    #-------------------------------------------------------------------
+
+    @param fall n p1 p2 factor second itemtype
+    @pdef fall = fall > 0 ? fall : 0
+    @if isScalar(factor) && factor > 0.01
+	@pdef a = p1, b = p2, f = (1.0-factor)/2
+	@pdef p1 = pos(f,a,b)
+	@pdef p2 = pos(f,b,a)
+    @endif
+    @pdef itemtype = int(itemtype)   
+    @if n == 1
+	@pdef p = fall ? kcl$fall(p1+vy(fall),200,KCL$DRIVE) : p1
+	0 o$itembox p 0 itemtype itemtype 0 -1  0 v3(0) 0 0 0 0 0x3f  v3(1)
+    @else
+	@pdef second = isScalar(second) && second > 0
+		> ? hrot(vz(second),hdir(p1,p2)+90) : v3(0)
+	@pdef n = n - 1.0
+	@for i=0;n
+	    @pdef p = pos(i/n,p1,p2)
+	    @doif(i&1)  @pdef p = p + second
+	    @doif(fall) @pdef p = kcl$fall(p+vy(fall),200,KCL$DRIVE)
+	    0 o$itembox p 0 itemtype itemtype 0 -1  0 v3(0) 0 0 0 0 0x3f  v3(1)
+	@endfor
+    @endif
+@endmacro
+
+#
+###############################################################################
+
+[AREA]
+# Camera and other areas
+# KMP/AREA syntax & semantics: https://szs.wiimm.de/doc/kmp/area
+
+@REVISION        = 7680
+@AREA-HEAD-VALUE = 0
+
+#AREA#
+#------------------------------------------------------------------------------------
+#       mode type    _____position/rotation/scale______   _________settings_________
+#  idx  came prio          x           y           z         #1     #2     #3     #4
+#------------------------------------------------------------------------------------
+    a0     0  0x1    -16199.810       0.000  -22898.490       0      0 0xffff      0
+ >         0    0         0.000      -2.851       0.000 
+ >                        1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+    a1     0  0x1    -18738.061       0.000  -15005.110       0      0 0xffff      0
+ >         0    0         0.000     -24.991       0.000 
+ >                        1.095       1.000       1.095
+#------------------------------------------------------------------------------------
+    a2     0  0x1    -16871.590       0.000  -31492.439       0      0 0xffff      0
+ >         0    0         0.000      11.737       0.000 
+ >                        1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+    a3     0  0x1    -38354.102       0.000  -27431.779       0      0 0xffff      0
+ >         0    0         0.000       0.000       0.000 
+ >                        3.926       1.000       2.220
+#------------------------------------------------------------------------------------
+    a4     0  0x1    -41508.941       0.000  -14812.770       0      0 0xffff      0
+ >         0    0         0.000     -39.256       0.000 
+ >                        1.963       1.000       1.599
+#------------------------------------------------------------------------------------
+
+#
+###############################################################################
+
+[CAME]
+# Cameras
+# KMP/CAME syntax & semantics: https://szs.wiimm.de/doc/kmp/came
+
+@REVISION        = 7680
+@OPENING-INDEX   = c0
+@SELECTION-INDEX = c0
+
+#CAME#
+#-------------------------------------------------------------------------------------------
+#  idx  type  v(came)  _________position (x,y,z)_________   zoom_beg  #        some
+#       next  v(zoom)  _________rotation (x,y,z)_________   zoom_end  #     calculated
+#     unknown v(v.pt)  ______view point beg (x,y,z)______       -     #       values
+#      route  unknown  ______view point end (x,y,z)______    sec*60   #     (info only)
+#-------------------------------------------------------------------------------------------
+	# CAME reference: @OPENING-INDEX @SELECTION-INDEX c1 c2
+    c0     5       0     3705.500    2000.000   -6712.828     40.000  # came time:    7.95s
+ > ( mode$ocam == 1 ? c0 : mode$test ? c0 : -1 )
+ >                 0        0.000       0.000       0.000     50.000
+ >         0    8000    43679.988    8264.554     386.492             # v.pt time:    4.51s
+ >        r0       0    22939.859    2200.000    1351.891    477.000  # v.pt len: 21630.16
+#-------------------------------------------------------------------------------------------
+    c1     0       0        0.000   14400.000       0.000     85.000
+ >        c0      30        0.000       0.000       0.000     40.000  # zoom time:    2.50s
+ >         0       0       30.000      -1.000     550.000
+ >        -1       0        5.000       1.000       0.000      0.000  # v.pt len:   550.57
+#-------------------------------------------------------------------------------------------
+    c2     1       0        0.000       0.000       0.000      0.000
+ >        c0       0        0.000       0.000       0.000      0.000
+ >         0       0        0.000       0.000       0.000
+ >        -1       0        0.000       0.000       0.000      0.000
+#-------------------------------------------------------------------------------------------
+
+#
+###############################################################################
+
+[CKPH]
+# Check points header: Divide check points into groups.
+# KMP/CKPH syntax & semantics: https://szs.wiimm.de/doc/kmp/ckph
+
+#######################################################################
+## This complete section is only informative and ignored on reading, ##
+## because it will be created while scanning the [CKPT] section.     ##
+#######################################################################
+
+# values never used:
+  # @REVISION        = 7680
+  # @CKPH-HEAD-VALUE = 0
+
+#CKPH#
+#-----------------------------------------------------------------------------#-------
+#     ___range___  _________prev__________  _________next__________           # group
+#idx  beg end len   #1  #2  #3  #4  #5  #6   #1  #2  #3  #4  #5  #6  unknown  # name
+#-----------------------------------------------------------------------------#-------
+   0    0  21  22    0   -   -   -   -   -    0   -   -   -   -   -   0 0x00  # G1
+
+#
+###############################################################################
+
+[CKPT]
+# Check points
+# KMP/CKPT syntax & semantics: https://szs.wiimm.de/doc/kmp/ckpt
+
+@REVISION        = 7680
+@CKPT-HEAD-VALUE = 0
+@CKPH-HEAD-VALUE = 0
+@AUTO-NEXT       = 0
+@AUTO-GROUP-NAME = 0
+@AUTO-RESPAWN    = 0	# 0:off, 1:on
+
+@AUTO-MODE = mode$automode
+# allowed values: AM$OFF AM$NORM AM$RENUMBER AM$1LAP AM$SHORT AM$UNLIMIT
+
+@ROUTE-OBJECT-MODE   = mode$showck
+#--- default settings:
+# @ROUTE-OBJECT1       = o$castletree1
+# @ROUTE-OBJECT2       = o$TownTreeDS
+# @ROUTE-OBJECT1-SCALE = v( 0.05, 12.00, 0.20 )
+# @ROUTE-OBJECT2-SCALE = v( 0.05, 12.00, 0.20 )
+# @ROUTE-OBJECT1-BASE  = -2000
+# @ROUTE-OBJECT2-BASE  = -2000
+
+#CKPT#
+#----------------------------------------------------------------------#-------------------
+#      _____left_point______   _____right_point_____ respawn   prev    #   width     direc-
+#idx        x           y           x           y          mode   next #  of ckpt     tion
+#----------------------------------------------------------------------#-------------------
+
+ # zero based index: 0,  prev: 0,  next: 0
+ $GROUP G1,  next: G1
+
+   0   15785.110   -7980.105   51124.398   -7980.105   j21   0  -1   1 # 35339.289  180.00
+
+   1   15206.190   -9423.611   46130.801  -28903.779    j0  -1   0   2 # 36548.713 -147.79
+   2   14208.930  -10382.450   28818.211  -41606.699    j1  -1   1   3 # 34472.959 -115.07
+   3    9746.509  -10170.270   10594.030  -42376.129    j2  -1   2   4 # 32217.009  -91.51
+   4    1553.791   -9887.763    1553.791  -43647.410    j3   1   3   5 # 33759.648  -90.00
+
+   5   -9181.494   -8898.987   -9040.240  -41246.102    j4  -1   4   6 # 32347.422  -90.25
+   6  -15961.670   -7486.449  -15114.150  -37856.012    j5  -1   5   7 # 30381.386  -91.60
+   7  -26185.650  -12085.680  -22534.770  -35423.129    j6   2   6   8 # 23621.293  -98.89
+
+   8  -35536.949  -27054.480  -29547.141  -32293.930    j7  -1   7   9 #  7957.992 -138.82
+   9  -41136.230  -31791.971  -39956.379  -40191.961    j8  -1   8  10 #  8482.446  -98.00
+  10  -46980.340  -28597.320  -54536.859  -33491.699    j9  -1   9  11 #  9003.107  -32.93
+  11  -47980.770  -22083.910  -55736.859  -18949.520   j10  -1  10  12 #  8365.485   22.00
+  12  -41075.012  -17669.420  -44347.930   -9517.860   j11  -1  11  13 #  8784.072   68.12
+  13  -30573.410  -12420.480  -36526.270   -5850.914   j12  -1  12  14 #  8865.424   47.82
+  14  -18384.760   -5547.127  -37086.500    7132.020   j13  -1  13  15 # 22594.598   34.14
+  15  -15848.930   -3962.233  -24407.359   22030.020   j14   3  14  16 # 27365.012   71.77
+
+  16  -13355.090   -4680.161   -3645.254   22505.480   j15  -1  15  17 # 28867.628  109.66
+  17   -4279.212   -8399.934   -2218.851   22188.510   j16  -1  16  18 # 30657.755   93.85
+  18    6498.062   -4754.679    -475.468   22188.510   j17  -1  17  19 # 27831.018   75.49
+  19   12996.120   -3486.765   14581.020   22505.480   j18  -1  18  20 # 26040.522   93.49
+  20   14632.720   -3979.469   34075.199   19177.211   j19   4  19  21 # 30236.433  130.02
+  21   16165.910   -5388.637   46085.922    6498.062   j20   5  20  -1 # 32194.731  158.33
+
+#
+###############################################################################
+
+[CNPT]
+# Cannon target positions
+# KMP/CNPT syntax & semantics: https://szs.wiimm.de/doc/kmp/cnpt
+
+@REVISION           = 7680
+@CNPT-HEAD-VALUE    = 0
+@AUTO-ID            = 1
+
+# Activate automatic Y-correction (KCL fall)
+@KCL-FALL-WIDTH     =   0        # set to a value >0 (e.g. 200) to enable KCL falling
+@KCL-FALL-PRE-ADD   =   0        # add this height or vector before falling
+@KCL-FALL-POST-ADD  =   0        # add this height or vector after success
+@KCL-FALL-TYPES     = KCL$DRIVE  # bit field of recognized KCL types
+	# Best values are:
+	#  - KCL$BORDER: All KCL types except effects.
+	#  - KCL$DRIVE:  All driveable types like road, boost, ramp, water, ...
+
+# Snap to nearest point of the enemy route and add the vector.
+# Activate it with something like: vy(200) => 200 units higher than the enemy point
+@HSNAP-TO-ENPT      = $NONE      # horizontal snap without adjust, y-rotation
+@SNAP-TO-ENPT       = $NONE      # 3D snap, y-rotation
+@SNAP2-TO-ENPT      = $NONE      # 3D snap, x- and y-rotation
+
+# Show points in the track by using objects
+# Values: 0=off, -1=use default (block of ghost value), >0=force object with 'id'
+@ROUTE-OBJECT       = mode$showrt & 8 ? -1 : 0  
+@ROUTE-OBJECT-SHIFT = $NONE      # v3(0)  # add vector to position
+@ROUTE-OBJECT-SCALE = $NONE      # v3(1)  # define vector scale
+
+#CNPT#
+#-------------------------------------------------------------------------------
+#      _____________position_____________ _______rotation________ related
+# idx        x           y           z        x       y       z       id effect
+#-------------------------------------------------------------------------------
+
+#
+###############################################################################
+
+[ENPH]
+# Enemy route points header: Divide enemy points into groups.
+# KMP/ENPH syntax & semantics: https://szs.wiimm.de/doc/kmp/enph
+
+#######################################################################
+## This complete section is only informative and ignored on reading, ##
+## because it will be created while scanning the [ENPT] section.     ##
+#######################################################################
+
+# values never used:
+  # @REVISION        = 7680
+  # @ENPH-HEAD-VALUE = 0
+
+#ENPH#
+#-----------------------------------------------------------------------------#-------
+#     ___range___  _________prev__________  _________next__________           # group
+#idx  beg end len   #1  #2  #3  #4  #5  #6   #1  #2  #3  #4  #5  #6  unknown  # name
+#-----------------------------------------------------------------------------#-------
+   0    0  63  64    0   -   -   -   -   -    0   -   -   -   -   -   0 0x00  # G1
+
+#
+###############################################################################
+
+[ENPT]
+# Enemy Points: Routes of the cpu racers
+# KMP/ENPT syntax & semantics: https://szs.wiimm.de/doc/kmp/enpt
+
+@REVISION           = 7680
+@ENPT-HEAD-VALUE    = 0
+@ENPH-HEAD-VALUE    = 0
+@AUTO-FILL          =   0.0      # >1 (e.g. 5000): create more points if distance is larger
+@AUTO-GROUP-NAME    =   0
+@ROTATE-GROUP-LINKS =   0
+@KCL-FALL-WIDTH     =   0        # set to a value >0 (e.g. 200) to enable KCL falling
+@KCL-FALL-PRE-ADD   =   0        # add this height or vector before falling
+@KCL-FALL-POST-ADD  =   0        # add this height or vector after success
+@KCL-FALL-TYPES     = KCL$DRIVE  # bit field of recognized KCL types
+	# Best values are:
+	#  - KCL$BORDER: All KCL types except effects.
+	#  - KCL$DRIVE:  All driveable types like road, boost, ramp, water, ...
+@ROUTE-OBJECT       = mode$showrt & 1 ? -1 : 0  # 0=off, -1=use default, >0=object id
+@ROUTE-OBJECT-SHIFT = $NONE      # v3(0)  # add vector to position
+@ROUTE-OBJECT-SCALE = $NONE      # v3(1)  # define vector scale
+
+# Column 'flag' is optional and ususally only used internally.
+# Syntax:   FLAGS_STRING   or   '(' EXPRESSION ')'
+#   F (F$FALL): Point can be used for FALL-DOWN functionality.
+#   S (F$SNAP): Point can be used for SNAP functionality (ignored by ITPT).
+#   J (F$JGPT): Point can be used for automatic JGPT creation.
+# Remove the letter or replace it by '-' to disable a feature.
+# If the column is missed, all options are enabled by default.
+
+# If you enable EXPORT-FLAGS (set it to 1), the flags are exported using the
+# lowest byte of WIDTH FACTOR. The factor needs only 2 or 3 digits, so this
+# has no disadvantage on the width factors. 5 of the 8 bits are used to verify
+# changes by other tools on import. If at least 1 of these bit of all points
+# is wrong, import is canceled.
+@EXPORT-FLAGS = 0  # 0=disabled, 1=enabled (overridden by option --export-flags)
+
+# Experimental options, tools before v1.60a will throw error messages!
+@SHOW-OPTIONS = 0   # >0: force printing of all route options
+
+# AUTO-CONNECT is one of the following AC$* symbols:
+# For racing tracks and for battle areenas with manual links setup:
+#   AC$OFF
+#	Do not any auto connection. Route connection are fully under control
+#	of the user.
+#   AC$PREV
+#	Setup PREV links by NEXT links of other routes. Existing PREV links
+#	are cleared before. This is the default and the behavior of all versions
+#	before v1.60a.
+#
+# Modes for automatic route connection in battle arenas:
+#   AC$DISPATCH
+#	Find dispatch points and create links automatically if not already
+#	set manually. This is the default for enemy routes, if dispatch
+#	points detected.
+#
+# Flags: The modes of above can be combined with the following options by
+# the OR operator '|' (example: AC$PREV | ACF$FIX)
+#   ACF$FIX_PREV
+#	Add self-links, if a PREV list is empty.
+#   ACF$FIX_NEXT
+#	Add self-links, if a NEXT list is empty.
+#   ACF$FIX
+#	Abbreviation for: ACF$FIX_PREV | ACF$FIX_NEXT
+#	This is the default for item routes to avoid a freeze.
+#
+@AUTO-CONNECT = AC$PREV
+
+# Syntax of new command with impact to all following $GROUP commands:
+#  "$DEF-CLASS" [":"] class_name
+
+# Syntax of new route commands (placed behind $GROUP command):
+#  "$PREV"      [":"] [group_name]...
+#  "$SETTINGS"  [":"] setting1 setting2 [ "AUTO" | "ROUTE" | "DISPATCH" ]
+#  "$CLASS"     [":"] class_name_prev [class_name_next]
+#  "$AC-PREV"   [":"] class_name
+#  "$AC-NEXT"   [":"] class_name
+#  "$ONEWAY"    [":"] "NONE" | "PREV" | "NEXT" | "BOTH"
+
+#ENPT#
+#----------------------------------------------------------------------#-------------------
+#      _____________position_____________    width     properties      #  distance   horiz
+#idx         x           y           z       factor     #1     #2 flag #   to prev   angle
+#----------------------------------------------------------------------#-------------------
+
+ # zero based index: 0,  prev: 0,  next: 0
+ $GROUP G1,  next: G1
+
+   0    22939.859    2001.000  -10963.350   13.000     0x3      0  FSJ
+   1    22827.391    2001.000  -14583.350   13.000     0x3      0  FSJ #  3621.747   10.42
+   2    22122.020    2001.000  -17844.850   13.000     0x4      0  FSJ #  3336.904   23.45
+   3    21302.131    2001.000  -18987.990   13.000       0      0  FSJ #  1406.765   26.25
+   4    19942.789    2001.000  -19713.939   13.000       0      0  FSJ #  1541.043   17.90
+   5    18253.961    2001.000  -20017.840   13.000     0x3      0  FSJ #  1715.953    9.39
+   6    15350.740    2001.000  -20058.779   13.000     0x3      0  FSJ #  2903.509    9.05
+   7    12883.410    2001.000  -19701.430   13.000     0x3      0  FSJ #  2493.074    0.28
+   8    10597.500    2001.000  -19358.961   13.000     0x4      0  FSJ #  2311.422   -2.67
+   9     8028.278    2088.634  -19095.510   13.000       0      0  FSJ #  2584.180  -12.35
+  10     5315.755    1401.000  -19404.119   13.000       0      0  FSJ #  2815.291  -13.59
+  11     3112.472    1401.000  -20209.660   13.000     0x3      0  FSJ #  2345.922    6.15
+  12      559.750    1401.000  -20843.141   13.000     0x3      0  FSJ #  2630.150    7.46
+  13    -2763.471    1401.000  -21220.270   13.000     0x3      0  FSJ #  3344.551    4.54
+  14    -6930.667    1401.000  -21360.730   13.000       0      0  FSJ #  4169.563   -1.37
+  15    -9750.510    1401.000  -21523.500   13.000       0      0  FSJ #  2824.537   -0.95
+  16   -13341.610    1401.000  -21790.881   13.000     0x4      0  FSJ #  3601.041   -2.01
+  17   -15720.510    2420.384  -22052.051   13.000       0      0  FSJ #  2601.253   -0.77
+  18   -22157.090    2001.000  -22846.410   13.000       0      0  FSJ #  6498.958   -8.17
+  19   -25052.711    2001.000  -23633.641   13.000       0      0  FSJ #  3000.725  -10.55
+  20   -27804.920    2001.000  -24961.740   13.000     0x3      0  FSJ #  3055.896  -16.75
+  21   -31028.680    2001.000  -27916.850   13.000       0      0  FSJ #  4373.248   -7.13
+  22   -34700.180    2001.000  -32237.580   13.000     0x4      0  FSJ #  5669.976   13.08
+  23   -37019.391    2001.000  -33957.941   13.000       0      0  FSJ #  2887.626   12.02
+  24   -39758.078    2001.000  -35208.691   13.000       0      0  FSJ #  3010.778   18.38
+  25   -42520.141    2001.000  -35507.070   13.000       0      0  FSJ #  2778.132   15.23
+  26   -44798.770    2001.000  -35143.531   13.000       0      0  FSJ #  2307.447   16.24
+  27   -47817.660    2001.000  -33716.090   13.000       0      0  FSJ #  3339.355   26.05
+  28   -50043.789    2001.000  -30932.131   13.000       0      0  FSJ #  3564.559   15.32
+  29   -51336.898    2001.000  -27933.770   13.000       0      0  FSJ #  3265.318   12.23
+  30   -51908.199    2001.000  -25022.051   13.000       0      0  FSJ #  2967.236   10.36
+  31   -51942.781    2001.000  -22340.320   13.000       0      0  FSJ #  2681.953   15.57
+  32   -51273.859    2001.000  -19814.471   13.000       0      0  FSJ #  2612.924   22.43
+  33   -49733.250    2001.000  -17789.730   13.000       0      0  FSJ #  2544.219   21.13
+  34   -46428.039    2001.000  -15756.010   13.000     0x3      0  FSJ #  3880.778    7.22
+  35   -39374.539    2001.000  -12558.830   13.000     0x3      0  FSJ #  7744.277   -3.68
+  36   -36246.441    2001.000  -10891.200   13.000       0      0  FSJ #  3544.853   -8.57
+  37   -33450.488    2001.000   -8812.478   13.000     0x4      0  FSJ #  3484.027  -12.26
+  38   -31473.131    2001.000   -6546.412   13.000       0      0  FSJ #  3007.490   -8.40
+  39   -30158.939    2599.999   -4499.586   13.000       0      0  FSJ #  2505.074   -3.39
+  40   -27519.930    2001.000     201.250   13.000     0x3      0  FSJ #  5424.116    0.31
+  41   -26087.600    2000.000    2720.938   13.000       0      0  FSJ #  2898.344    9.17
+  42   -24823.109    2001.000    4294.472   13.000     0x4      0  FSJ #  2018.650   11.62
+  43   -22758.600    2001.000    6002.362   13.000       0      0  FSJ #  2679.382   18.10
+  44   -20206.230    2001.000    7007.905   13.000       0      0  FSJ #  2743.302   21.97
+  45   -17353.439    2001.000    6984.681   13.000       0      0  FSJ #  2852.886   19.45
+  46   -15240.860    2001.000    6219.270   13.000       0      0  FSJ #  2246.963   18.50
+  47   -13159.080    2001.000    4568.542   13.000       0      0  FSJ #  2656.824    3.70
+  48   -10918.430    2001.000    2542.970   13.000       0      0  FSJ #  3020.506  -10.55
+  49    -8669.988    2001.000    1161.859   13.000       0      0  FSJ #  2638.741  -23.44
+  50    -5760.334    2001.000     746.535   13.000       0      0  FSJ #  2939.147  -14.82
+  51    -2846.313    2001.000    1088.462   13.000       0      0  FSJ #  2934.013  -11.34
+  52     -171.401    2001.000    1959.377   13.000       0      0  FSJ #  2813.121  -10.08
+  53     2919.247    2001.000    3610.664   13.000       0      0  FSJ #  3504.120   -3.80
+  54     6277.189    2001.000    5702.024   13.000       0      0  FSJ #  3955.952    7.82
+  55     8625.632    2001.000    6752.327   13.000     0x3      0  FSJ #  2572.610   14.48
+  56    11631.650    2001.000    7261.685   13.000     0x3      0  FSJ #  3048.867   11.00
+  57    15537.930    2001.000    7167.445   13.000       0      0  FSJ #  3907.416    9.81
+  58    19747.930    2001.000    6334.601   13.000     0x4      0  FSJ #  4291.588   14.21
+  59    21465.529    2001.000    5519.046   13.000       0      0  FSJ #  1901.389   29.54
+  60    22329.551    2001.000    4287.645   13.000       0      0  FSJ #  1504.288   27.38
+  61    22606.320    2001.000    2234.694   13.000     0x3      0  FSJ #  2071.523    4.78
+  62    22791.430    2001.000   -1421.218   13.000     0x3      0  FSJ #  3660.595    1.93
+  63    22857.551    2001.000   -5317.287   13.000     0x3      0  FSJ #  3896.630
+
+#
+###############################################################################
+
+[GOBJ]
+# Global objects.
+# KMP/GOBJ syntax & semantics: https://szs.wiimm.de/doc/kmp/gobj
+
+@REVISION          = 7680
+@GOBJ-HEAD-VALUE   = 0
+@AUTO-ENEMY-ITEM   =   0	# mode$test ? <item$star,item$mega> : 0
+@AUTO-OBJECT-NAME  =   0
+@KCL-FALL-WIDTH    =   0	# set to a value >0 (e.g. 200) to enable KCL falling
+@KCL-FALL-PRE-ADD  =   0	# add this height or vector before falling
+@KCL-FALL-POST-ADD =   0	# add this height or vector after success
+@KCL-FALL-TYPES    = KCL$DRIVE	# bit field of recognized KCL types
+	# Best values are:
+	#  - KCL$BORDER: All KCL types except effects.
+	#  - KCL$DRIVE:  All driveable types like road, boost, ramp, water, ...
+@SORT-OBJECTS      = SORT$OFF	# SORT$GROUPING SORT$ANGLE SORT$TINY
+
+# Object statistics:
+##-----------------------------------------------------------------------------------
+##count id/hex name               characteristics
+##-----------------------------------------------------------------------------------
+##   1    0x3  lensFX             no route, found in tracks + arenas
+##   1    0x7  pocha              no route, found in tracks + arenas
+##  25   0x65  itembox            no route, solid, found in tracks + arenas + other files
+##   1   0x6f  sun                no route, found in tracks + arenas
+##   1   0xc9  f_itembox          route needed, solid, found in tracks + other files
+##   1   0xd8  penguin_m          route needed, solid, found in tracks
+## 160  0x132  castleflower1      no route, found in tracks + other files
+##   1  0x153  FlagA2             no route, found in tracks
+##   3  0x191  kuribo             route needed, solid, found in tracks + other files
+##   1  0x217  Mdush              no route, solid, found in tracks
+##   1  0x2ee  EnvFire            no route, found in tracks
+##-----------------------------------------------------------------------------------
+
+#GOBJ#
+#------------------------------------------------------------------------------------
+#     obj-id ______position/rotation/scale______  _________settings_________   route
+# idx /unknw        x           y           z     #1/#5  #2/#6  #3/#7  #4/#8 /p-flag
+#------------------------------------------------------------------------------------
+## o$lensFX = 0x3 = 3, no route, found in tracks + arenas
+## Description: Generates a lens flare object when looking at the sun; it's also
+## highly recommended to place this object near or coincident to `sun'.
+## File names:  lensFX
+#------------------------------------------------------------------------------------
+# o$lensFX, S--------, no route, found in tracks + arenas
+   o0    0x3  -50000.000   18000.000  -35000.000      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+## o$pocha = 0x7 = 7, no route, found in tracks + arenas
+## Description: Generates a water splash effect when a player falls in the water
+## with the same assigned KCL id. Location doesn't matter, you have only to set
+## the height (Y coordinate) where you want to get the effect.
+## File names:  pocha(BE)
+## Setting #1:  KCL Index: 1 = Water fall 3 = Icy Water fall (needs `ice'
+##              object)
+#------------------------------------------------------------------------------------
+# o$pocha, S1-------, no route, found in tracks + arenas
+   o1    0x7    8636.939    1150.000   -1769.864      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+## o$itembox = 0x65 = 101, no route, solid, found in tracks + arenas + other files
+## Description: Spinning box with a question mark in it. If touched it snaps and
+## an item lottery begins; after the lottery the item shown is gotten.
+## File names:  itembox(B)
+## Setting #1:  Unknown
+## Setting #2:  Item type (player)
+## Setting #3:  Item type (enemy)
+## Setting #4:  Unknown
+## Setting #6:  Timing lottery
+## Setting #8:  Unknown
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+   o2   0x65   21814.859    2000.000  -14130.850      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+   o3   0x65   22377.359    2000.000  -14130.850      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+   o4   0x65   22939.859    2000.000  -14130.850      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+   o5   0x65   23502.359    2000.000  -14130.850      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+   o6   0x65   24064.859    2000.000  -14130.850      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+   o7   0x65   -5808.279    1400.000  -20384.699      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+   o8   0x65   -5797.041    1400.000  -20947.090      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+   o9   0x65   -5785.799    1400.000  -21509.471      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o10   0x65   -5774.557    1400.000  -22071.859      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o11   0x65   -5763.316    1400.000  -22634.250      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o12   0x65  -50273.109    2000.000  -28568.189      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o13   0x65  -50815.230    2000.000  -28772.689      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o14   0x65  -51357.359    2000.000  -28977.180      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o15   0x65  -51899.480    2000.000  -29181.680      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o16   0x65  -52441.609    2000.000  -29386.170      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o17   0x65  -31154.641    2050.000   -8090.363      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o18   0x65  -31605.900    2050.000   -7726.197      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o19   0x65  -32057.160    2050.000   -7362.030      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o20   0x65  -32508.420    2050.000   -6997.863      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o21   0x65  -32959.680    2050.000   -6633.697      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o22   0x65    -744.336    2000.000     193.733      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o23   0x65    -941.799    2000.000     719.963      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o24   0x65   -1139.262    2000.000    1246.192      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o25   0x65   -1336.725    2000.000    1772.422      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$itembox, S1234-6-8, no route, solid, found in tracks + arenas + other files
+  o26   0x65   -1534.188    2000.000    2298.651      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+## o$sun = 0x6f = 111, no route, found in tracks + arenas
+## Description: The sun in the vrcorn, often used with `lensFX'.
+## File names:  sun(B)
+#------------------------------------------------------------------------------------
+# o$sun, S--------, no route, found in tracks + arenas
+  o27   0x6f  -50000.000   18000.000  -35000.000      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              0.200       0.200       0.200
+#------------------------------------------------------------------------------------
+## o$f_itembox = 0xc9 = 201, route needed, solid, found in tracks + other files
+## Description: Route controlled itembox. If any Route Setting 2 = 1, explodes
+## mode is activated.
+## File names:  itembox(B)
+## Setting #1:  Start speed in units per 1/60 seconds; if a Route Setting 1 > 0
+##              a new speed is defined
+## Setting #2:  Item type (player)
+## Setting #3:  Item type (enemy)
+## Setting #4:  Unknown (0 or 1 in Nintendo tracks)
+## Setting #5:  Route start point
+#------------------------------------------------------------------------------------
+# o$f_itembox, S12345---, route needed, solid, found in tracks + other files
+  o28   0xc9       0.000       0.000       0.000     20      0      0      0      r5
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.300       1.300       1.300
+#------------------------------------------------------------------------------------
+## o$penguin_m = 0xd8 = 216, route needed, solid, found in tracks
+## Description: Medium penguin from N64 Sherbet Land. Slot 6.1 enables its SFX.
+## File names:  penguin_m(BED)
+## Setting #1:  Speed
+#------------------------------------------------------------------------------------
+# o$penguin_m, S1-------, route needed, solid, found in tracks
+  o29   0xd8  -19241.811    1150.000  -16077.840     15      0      0      0      r4
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              0.600       0.600       0.600
+#------------------------------------------------------------------------------------
+## o$castleflower1 = 0x132 = 306, no route, found in tracks + other files
+## Description: Flower from Mario Circuit.
+## File names:  castleflower1(B)
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o30  0x132   19531.490    2001.000  -24396.609      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o31  0x132   23245.939    2001.000  -21741.359      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o32  0x132   26652.811    2001.000  -18818.750      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o33  0x132   26103.801    2001.000  -15248.780      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o34  0x132   26719.131    2001.000  -11264.260      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o35  0x132   27726.270    2001.000   -7813.230      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o36  0x132   26311.539    2001.000   -4532.131      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o37  0x132   26059.760    2001.000   -1510.710      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o38  0x132   26815.109    2001.000    2391.958      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o39  0x132   27066.900    2001.000    6042.842      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o40  0x132   25052.619    2001.000    8308.908      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o41  0x132   22031.189    2001.000    9945.511      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o42  0x132   18632.100    2001.000    9819.618      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o43  0x132   15471.030    2001.000   11914.470      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o44  0x132   10136.190    2001.000   10491.850      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o45  0x132    6223.978    2001.000    9958.365      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o46  0x132    2133.935    2214.000    8002.257      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o47  0x132   -1600.451    2244.000    4623.526      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o48  0x132   -8001.500    2164.598    4800.760      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o49  0x132   -9780.537    2281.000    8180.085      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o50  0x132  -14404.060    2001.000    9780.537      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o51  0x132  -18316.279    2001.000   10847.500      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o52  0x132  -23295.461    2001.000    9602.709      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o53  0x132  -26674.189    2001.000    8002.257      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o54  0x132  -28808.131    2001.000    4979.182      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o55  0x132  -30942.061    2001.000    1956.107      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o56  0x132  -25073.740    2206.000   -2667.419      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o57  0x132  -23828.939    2146.000    1422.624      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o58  0x132  -20094.561    2077.000    2667.419      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o59  0x132  -16360.170    2035.000    3023.075      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o60  0x132  -14048.410    2208.000     533.484      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o61  0x132  -10491.850    2120.000   -1244.796      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o62  0x132   -7468.774    2006.000   -2845.247      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o63  0x132   -4090.043    2001.000   -2133.935      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o64  0x132    1956.107    2179.000   -1244.796      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o65  0x132    6935.289    2342.000     533.484      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o66  0x132    8357.913    2139.000    3200.903      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o67  0x132   12270.130    2341.000    1600.451      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o68  0x132   17427.141    2033.000    3378.731      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o69  0x132   19738.900    2001.000    1600.451      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o70  0x132   19205.420    2143.000   -2311.763      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o71  0x132   18671.930    2227.000   -6223.978      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o72  0x132   19383.250    2100.000  -11203.160      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o73  0x132   17071.480    2310.000  -12803.610      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o74  0x132   19027.590    2001.000  -16360.170      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o75  0x132   14404.060    2211.000  -15471.030      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o76  0x132   10491.850    2264.000  -15826.690      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o77  0x132    4979.182    1502.000  -16538.000      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o78  0x132    1600.451    1536.000  -16182.340      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o79  0x132   -1956.107    1434.000  -18138.449      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o80  0x132   -3200.903    1889.000  -14581.890      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o81  0x132    3023.384    2204.353  -13158.300      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o82  0x132    8535.741    2772.000  -13514.920      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o83  0x132   12270.130    2839.000  -12981.440      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o84  0x132   17491.859    2088.000     766.160      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o85  0x132   13870.580    2565.000    -355.656      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o86  0x132   -2489.591    2900.000   -5157.010      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o87  0x132   -5512.666    2548.000   -4445.699      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o88  0x132  -17960.619    2376.000     177.828      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o89  0x132  -21872.840    2459.000   -1778.279      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o90  0x132  -32009.029    2001.000    4090.043      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o91  0x132  -30408.580    2001.000    8180.085      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o92  0x132  -26852.020    2001.000   10847.500      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o93  0x132  -20805.869    2001.000   13159.270      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o94  0x132  -11380.990    2229.000   11025.330      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o95  0x132   -5690.494    2761.000    9069.225      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o96  0x132   -1778.279    2917.000   10136.190      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o97  0x132    2489.591    2256.000   11380.990      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o98  0x132    9958.365    2001.000   14048.410      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+  o99  0x132   14048.410    2001.000   14759.720      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o100  0x132   18671.930    2001.000   13692.750      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o101  0x132   23117.631    2001.000   13337.100      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o102  0x132   26674.189    2001.000   11380.990      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o103  0x132   29519.439    2001.000    3734.387      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o104  0x132   29519.439    2001.000   -2845.247      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o105  0x132   29875.090    2001.000  -11025.330      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o106  0x132   27646.561    2001.000  -21334.311      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o107  0x132   25785.051    2001.000  -24362.430      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o108  0x132   15471.030    2001.000  -23117.631      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o109  0x132   11203.160    2001.000  -22939.801      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o110  0x132   -5226.684    1740.772  -18752.340      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o111  0x132   -5508.896    2178.000  -12995.340      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o112  0x132   -6215.165    2172.000  -15679.170      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o113  0x132   -3672.598    1401.000  -25001.910      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o114  0x132    -706.269    1401.000  -26273.199      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o115  0x132    2966.329    1401.000  -23306.869      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o116  0x132    5932.658    1636.000  -21753.080      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o117  0x132    5226.389    1564.000  -24860.660      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o118  0x132    2825.075    1401.000  -27261.971      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o119  0x132    -141.254    1401.000  -29239.529      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o120  0x132   -1977.553    1401.000  -32488.359      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o121  0x132    6215.165    1679.000  -27685.740      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o122  0x132    9040.240    1986.000  -26696.961      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o123  0x132   12571.580    2001.000  -25284.420      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o124  0x132   15961.670    2001.000  -26131.949      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o125  0x132   23165.619    2001.000  -26414.449      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o126  0x132   18362.990    2001.000  -28392.010      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o127  0x132   30510.811    2001.000  -13560.360      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o128  0x132   30087.051    2001.000  -19210.510      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o129  0x132   29098.270    2001.000  -23306.869      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o130  0x132   29098.270    2001.000   -5650.150      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o131  0x132   31217.080    2001.000   -7768.956      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o132  0x132   30369.561    2001.000     282.508      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o133  0x132   -4378.866    3000.000   12006.570      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o134  0x132     423.761    2674.000   12712.840      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o135  0x132    3672.598    2017.000   14125.380      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o136  0x132    7486.449    2001.000   15537.910      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o137  0x132   11300.300    2001.000   16809.199      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o138  0x132   -7209.520    3114.058   13839.290      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o139  0x132  -10735.290    2518.000   13842.870      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o140  0x132  -13984.120    2001.000   13277.850      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o141  0x132   -3415.982    3114.058   14433.380      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o142  0x132  -22883.109    2001.000   15679.170      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o143  0x132  -16795.711    2175.002   16107.550      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o144  0x132   -9605.255    2915.000   16950.449      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o145  0x132   -2037.771    3114.058   17507.740      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o146  0x132    3955.105    2001.000   17656.721      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o147  0x132   20199.289    2001.000   16385.439      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o148  0x132   26838.211    2001.000   14549.140      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o149  0x132   30934.570    2001.000    8192.718      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o150  0x132   32912.129    2001.000     988.776      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o151  0x132   32912.129    2001.000   -3390.090      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o152  0x132   33053.379    2001.000  -12006.570      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o153  0x132   32488.359    2001.000  -20340.539      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o154  0x132   27120.721    2001.000  -27261.971      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o155  0x132   11017.790    2001.000  -29804.539      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o156  0x132   19493.020    2001.000  -30934.570      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o157  0x132    2825.075    1401.000  -31075.830      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o158  0x132   15679.170    2001.000  -29945.801      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o159  0x132   22459.350    2001.000  -28815.770      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o160  0x132   32629.619    2001.000  -16526.689      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o161  0x132    3955.105    2128.000     988.776      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o162  0x132    8192.718    1894.000  -31782.100      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o163  0x132    3248.837    1401.000  -35172.180      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o164  0x132   15537.910    2001.000  -33759.648      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o165  0x132   23448.119    2001.000  -32064.600      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o166  0x132   30934.570    2001.000  -27403.230      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o167  0x132   36302.211    2001.000  -19493.020      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o168  0x132   37290.988    2001.000  -10735.290      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o169  0x132   37008.480    2001.000   -4237.613      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o170  0x132   35878.449    2001.000    3672.598      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o171  0x132   29663.289    2001.000   11017.790      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o172  0x132   14125.380    2839.000   -5226.389      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o173  0x132   15255.410    2665.000   -8051.464      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o174  0x132   11300.300    3215.000   -5932.659      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o175  0x132    8192.717    3376.000   -8898.986      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o176  0x132    5085.135    2760.000   -3955.105      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o177  0x132    3390.090    2758.000   -9464.002      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o178  0x132    -423.761    3222.000   -8192.718      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o179  0x132   -4096.359    2850.000  -10029.020      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o180  0x132   -9181.494    2434.000   -9040.240      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o181  0x132  -11865.320    2456.000   -6073.911      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o182  0x132  -15255.410    2433.000   -3248.836      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o183  0x132  -15961.670    2477.000   -5932.658      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o184  0x132  -17515.471    2432.000   -8616.479      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o185  0x132  -18928.000    2478.000   -5085.135      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o186  0x132  -20199.289    2274.000   -9464.002      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o187  0x132  -23024.359    2143.000  -10594.030      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o188  0x132  -24578.150    2143.000   -8192.718      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+# o$castleflower1, S--------, no route, found in tracks + other files
+ o189  0x132    8757.733    3156.000   -4802.628      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.500       1.500       1.500
+#------------------------------------------------------------------------------------
+## o$FlagA2 = 0x153 = 339, no route, found in tracks
+## Description: Starting line flag from Moo Moo Meadows.
+## File names:  FlagA2(B)
+#------------------------------------------------------------------------------------
+# o$FlagA2, S--------, no route, found in tracks
+ o190  0x153   20783.029    4399.247   -7961.776      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.080       1.080       1.080
+#------------------------------------------------------------------------------------
+## o$kuribo = 0x191 = 401, route needed, solid, found in tracks + other files
+## Description: Goomba.
+## File names:  kuribo(B2D)
+## Setting #1:  Respawn time
+## Setting #2:  Speed
+## Setting #3:  Animation speed
+#------------------------------------------------------------------------------------
+# o$kuribo, S123-----, route needed, solid, found in tracks + other files
+ o191  0x191      -8.536    1400.000  -22082.320    600     40    120      0      r1
+    >      0       0.000      90.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$kuribo, S123-----, route needed, solid, found in tracks + other files
+ o192  0x191  -22139.439    2000.000    9192.381    600     40    120      0      r2
+    >      0       0.000    -128.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+# o$kuribo, S123-----, route needed, solid, found in tracks + other files
+ o193  0x191   13993.220    2000.000    7386.212    600     40    120      0      r3
+    >      0       0.000     -84.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+## o$Mdush = 0x217 = 535, no route, solid, found in tracks
+## Description: Small jump ramp from Mario Circuit and Moo Moo Meadows.
+## File names:  Mdush(BK)
+#------------------------------------------------------------------------------------
+# o$Mdush, S--------, no route, solid, found in tracks
+ o194  0x217   -1809.040    2459.453    6772.888      0      0      0      0      -1
+    >      0       0.000     -90.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+## o$EnvFire = 0x2ee = 750, no route, found in tracks
+## Description: Lava particle effect from Bowser's Castle; AREA type 0x01
+## deactivates this object.
+## File names:  EnvFire(E)
+#------------------------------------------------------------------------------------
+# o$EnvFire, S--------, no route, found in tracks
+ o195  0x2ee       0.000       0.000       0.000      0      0      0      0      -1
+    >      0       0.000       0.000       0.000      0      0      0      0    0x3f
+    >              1.000       1.000       1.000
+#------------------------------------------------------------------------------------
+
+#
+###############################################################################
+
+[ITPH]
+# Item route points header: Divide item points into groups.
+# KMP/ITPH syntax & semantics: https://szs.wiimm.de/doc/kmp/itph
+
+#######################################################################
+## This complete section is only informative and ignored on reading, ##
+## because it will be created while scanning the [ITPT] section.     ##
+#######################################################################
+
+# values never used:
+  # @REVISION        = 7680
+  # @ITPH-HEAD-VALUE = 0
+
+#ITPH#
+#-----------------------------------------------------------------------------#-------
+#     ___range___  _________prev__________  _________next__________           # group
+#idx  beg end len   #1  #2  #3  #4  #5  #6   #1  #2  #3  #4  #5  #6  unknown  # name
+#-----------------------------------------------------------------------------#-------
+   0    0  11  12    5   6   -   -   -   -    8   -   -   -   -   -   0 0x00  # G1
+   1   12  17   6    8   -   -   -   -   -    3   4   -   -   -   -   0 0x00  # G3A
+   2   18  22   5    8   -   -   -   -   -    3   4   -   -   -   -   0 0x00  # G3B
+   3   23  29   7    1   2   -   -   -   -    5   6   -   -   -   -   0 0x00  # G4A
+   4   30  35   6    1   2   -   -   -   -    5   6   -   -   -   -   0 0x00  # G4B
+   5   36  43   8    3   4   -   -   -   -    0   7   -   -   -   -   0 0x00  # G5A
+   6   44  50   7    3   4   -   -   -   -    0   7   -   -   -   -   0 0x00  # G5B
+   7   51  56   6    5   6   -   -   -   -    8   -   -   -   -   -   0 0x00  # G6
+   8   57  89  33    0   7   -   -   -   -    1   2   -   -   -   -   0 0x00  # G2
+
+#
+###############################################################################
+
+[ITPT]
+# Item Points: Routes of red shells and bullet bill
+# KMP/ITPT syntax & semantics: https://szs.wiimm.de/doc/kmp/itpt
+
+@REVISION           = 7680
+@ITPT-HEAD-VALUE    = 0
+@ITPH-HEAD-VALUE    = 0
+@AUTO-FILL          =   0.0      # >1 (e.g. 5000): create more points if distance is larger
+@AUTO-GROUP-NAME    =   0
+@ROTATE-GROUP-LINKS =   0
+@KCL-FALL-WIDTH     =   0        # set to a value >0 (e.g. 200) to enable KCL falling
+@KCL-FALL-PRE-ADD   =   0        # add this height or vector before falling
+@KCL-FALL-POST-ADD  =   0        # add this height or vector after success
+@KCL-FALL-TYPES     = KCL$DRIVE  # bit field of recognized KCL types
+	# Best values are:
+	#  - KCL$BORDER: All KCL types except effects.
+	#  - KCL$DRIVE:  All driveable types like road, boost, ramp, water, ...
+@ROUTE-OBJECT       = mode$showrt & 2 ? -1 : 0  # 0=off, -1=use default, >0=object id
+@ROUTE-OBJECT-SHIFT = $NONE      # v3(0)  # add vector to position
+@ROUTE-OBJECT-SCALE = $NONE      # v3(1)  # define vector scale
+
+# Column 'flag' is optional and ususally only used internally.
+# Syntax:   FLAGS_STRING   or   '(' EXPRESSION ')'
+#   F (F$FALL): Point can be used for FALL-DOWN functionality.
+#   S (F$SNAP): Point can be used for SNAP functionality (ignored by ITPT).
+#   J (F$JGPT): Point can be used for automatic JGPT creation.
+# Remove the letter or replace it by '-' to disable a feature.
+# If the column is missed, all options are enabled by default.
+
+# If you enable EXPORT-FLAGS (set it to 1), the flags are exported using the
+# lowest byte of WIDTH FACTOR. The factor needs only 2 or 3 digits, so this
+# has no disadvantage on the width factors. 5 of the 8 bits are used to verify
+# changes by other tools on import. If at least 1 of these bit of all points
+# is wrong, import is canceled.
+@EXPORT-FLAGS = 0  # 0=disabled, 1=enabled (overridden by option --export-flags)
+
+# Route options. See section [ENPT] for details.
+@SHOW-OPTIONS = 0   # >0: force printing of all route options
+@AUTO-CONNECT = AC$PREV | ACF$FIX
+
+#ITPT#
+#----------------------------------------------------------------------#-------------------
+#      _____________position_____________    width     properties      #  distance   horiz
+#idx         x           y           z       factor     #1     #2 flag #   to prev   angle
+#----------------------------------------------------------------------#-------------------
+
+ # zero based index: 0,  prev: 5 6,  next: 8
+ $GROUP G1,  next: G2
+
+   0    22939.859    2001.000  -10963.350   20.000     0x1      0  FJ 
+   1    22827.391    2001.000  -14583.350   20.000     0x1      0  FJ  #  3621.747   10.42
+   2    22122.020    2001.000  -17844.850   20.000     0x1    0x1  FJ  #  3336.904   28.21
+   3    21167.811    2001.000  -18965.600   20.000     0x1    0x1  FJ  #  1471.936   22.58
+   4    19875.631    2001.000  -19624.391   20.000     0x1    0x1  FJ  #  1450.425   13.77
+   5    18298.730    2001.000  -19995.449   20.000     0x1      0  FJ  #  1619.969   12.90
+   6    15573.240    2000.000  -20011.449   20.000     0x1      0  FJ  #  2725.537    6.91
+   7    12883.410    2001.000  -19701.430   20.000     0x1      0  FJ  #  2707.637    1.95
+   8    10597.500    2001.000  -19358.961   20.000     0x1      0  FJ  #  2311.422   -2.67
+   9     8028.278    2090.000  -19095.510   20.000     0x2    0x1  FJ  #  2584.227  -12.35
+  10     5315.755    1401.000  -19404.119   20.000     0x2    0x1  FJ  #  2815.625  -13.59
+  11     3112.472    1401.000  -20209.660   20.000     0x2      0  FJ  #  2345.922
+
+ # zero based index: 1,  prev: 8,  next: 3 4
+ $GROUP G3A,  next: G4A G4B
+
+  12   -28074.400    2001.000    -713.001   20.000     0x2    0x1  FJ 
+  13   -26165.230    2000.000    2558.495   20.000     0x2      0  FJ  #  3787.825    7.99
+  14   -24123.279    2000.000    5148.001   20.000     0x1      0  FJ  #  3297.742   19.71
+  15   -21615.301    2000.000    6717.405   20.000     0x1      0  FJ  #  2958.544   22.48
+  16   -18368.369    2000.000    7263.924   20.000     0x1      0  FJ  #  3292.605   26.87
+  17   -14794.770    2001.000    6149.631   20.000     0x1      0  FJ  #  3743.296
+
+ # zero based index: 2,  prev: 8,  next: 3 4
+ $GROUP G3B,  next: G4A G4B
+
+  18   -24509.400    2283.000   -2673.753    5.000     0x1      0  FJ 
+  19   -21300.900    2455.000   -1247.751    5.000     0x1    0x1  FJ  #  3515.329   -6.25
+  20   -17877.490    2301.375     745.517    5.000     0x1    0x1  FJ  #  3964.398   13.83
+  21   -14349.140    2143.000    1782.502    5.000     0x1    0x1  FJ  #  3680.989   11.18
+  22   -12388.390    2001.000    1960.752    5.000     0x1    0x1  FJ  #  1973.950
+
+ # zero based index: 3,  prev: 1 2,  next: 5 6
+ $GROUP G4A,  next: G5A G5B
+
+  23   -10283.050    2000.000    1955.094   20.000     0x1      0  FJ 
+  24    -7753.883    2001.000     891.251   20.000     0x1      0  FJ  #  2743.802  -19.12
+  25    -4991.005    2001.000     713.001   20.000     0x1      0  FJ  #  2768.622  -14.65
+  26    -2228.127    2001.000    1247.751   20.000     0x1      0  FJ  #  2814.152  -10.08
+  27       89.125    2001.000    2139.002   20.000     0x1      0  FJ  #  2482.737   -5.35
+  28     2150.577    2000.000    3161.945   20.000     0x1      0  FJ  #  2301.303   -7.19
+  29     4099.754    2001.000    4456.255   20.000     0x1      0  FJ  #  2339.771
+
+ # zero based index: 4,  prev: 1 2,  next: 5 6
+ $GROUP G4B,  next: G5A G5B
+
+  30    -8376.912    2335.000    5838.222    5.000     0x1      0  FJ 
+  31    -5492.966    2445.095    6691.532    5.000     0x1    0x1  FJ  #  3009.552   11.96
+  32    -3880.646    2523.000    6819.022    5.000     0x1    0x1  FJ  #  1619.228    5.80
+  33    -1809.040    2576.000    6772.888    5.000     0x1    0x1  FJ  #  2072.797    6.62
+  34     2361.287    2014.000    6194.723    5.000     0x1    0x1  FJ  #  4247.558   -5.84
+  35     4858.270    2001.000    6105.386    5.000     0x1    0x1  FJ  #  2498.614
+
+ # zero based index: 5,  prev: 3 4,  next: 0 7
+ $GROUP G5A,  next: G1 G6
+
+  36     7576.292    2000.000    6592.037   20.000     0x1      0  FJ 
+  37    10897.550    2000.000    7391.057   20.000     0x1      0  FJ  #  3416.019   14.65
+  38    14964.690    2000.000    7311.048   20.000     0x1      0  FJ  #  4067.928    8.51
+  39    19549.250    2000.000    6532.356   20.000     0x1      0  FJ  #  4650.220   20.71
+  40    21790.770    2000.000    5219.765   20.000     0x1    0x1  FJ  #  2597.557   38.04
+  41    22709.000    2000.000    2900.953   20.000     0x1    0x1  FJ  #  2494.000   18.53
+  42    22944.109    2000.000   -1474.624   20.000     0x1    0x1  FJ  #  4381.889    2.51
+  43    22994.270    2001.000   -6595.257   20.000     0x1      0  FJ  #  5120.879
+
+ # zero based index: 6,  prev: 3 4,  next: 0 7
+ $GROUP G5B,  next: G1 G6
+
+  44     7664.758    2162.000    2762.878    5.000     0x1      0  FJ 
+  45    12031.890    2301.000    2139.002    5.000     0x1    0x1  FJ  #  4413.659   12.04
+  46    16399.020    2279.000     534.751    5.000     0x1    0x1  FJ  #  4652.519   14.21
+  47    19785.770    2074.000   -1782.502    5.000     0x1    0x1  FJ  #  4108.742    4.91
+  48    21746.520    2001.000   -3386.753    5.000     0x1    0x1  FJ  #  2534.461   25.36
+  49    22548.650    2001.000   -5080.130    5.000     0x1    0x1  FJ  #  1873.750    8.96
+  50    22994.270    2001.000   -6595.257    5.000     0x1      0  FJ  #  1579.299
+
+ # zero based index: 7,  prev: 5 6,  next: 8
+ $GROUP G6,  next: G2
+
+  51    18805.391    2174.000  -10338.510    5.000     0x1      0  FJ 
+  52    15686.020    2437.000  -12923.140    5.000     0x1    0x1  FJ  #  4059.551   15.68
+  53    11675.390    2605.000  -14705.640    5.000     0x1    0x1  FJ  #  4392.116    1.18
+  54     7219.132    1565.000  -16577.270    5.000     0x1    0x1  FJ  #  4943.969  -12.76
+  55     4099.754    1401.000  -18805.391    5.000     0x1    0x1  FJ  #  3836.918    8.97
+  56     2852.003    1401.000  -19429.270    5.000     0x1      0  FJ  #  1395.030
+
+ # zero based index: 8,  prev: 0 7,  next: 1 2
+ $GROUP G2,  next: G3A G3B
+
+  57     1009.393    1400.000  -20687.949   20.000     0x1      0  FJ 
+  58    -1782.502    1401.000  -21033.520   20.000     0x1      0  FJ  #  2813.201    1.86
+  59    -5704.006    1401.000  -21390.020   20.000     0x1      0  FJ  #  3937.675    1.62
+  60    -8822.020    1400.000  -21584.779   20.000     0x1      0  FJ  #  3124.091    1.07
+  61   -12113.590    1400.000  -21728.811   20.000     0x1      0  FJ  #  3294.720   -0.61
+  62   -14023.150    1495.129  -21832.619   20.000     0x1      0  FJ  #  1914.745   -2.03
+  63   -15714.860    2330.791  -21984.740   20.000     0x1    0x1  FJ  #  1892.975   -1.26
+  64   -17884.449    2486.261  -22227.891   20.000     0x2    0x1  FJ  #  2188.700   -0.08
+  65   -20133.990    2000.000  -22483.301   20.000     0x1    0x1  FJ  #  2315.625   -3.07
+  66   -23172.520    2001.000  -22994.270   20.000     0x1    0x1  FJ  #  3081.193   -8.38
+  67   -26202.779    2001.000  -23974.650   20.000     0x1      0  FJ  #  3184.905  -15.76
+  68   -28341.779    2001.000  -25400.650   20.000     0x1      0  FJ  #  2570.758  -11.31
+  69   -30391.660    2001.000  -27450.529   20.000     0x1      0  FJ  #  2898.968   -2.66
+  70   -32347.109    2000.000  -29596.869   20.000     0x1      0  FJ  #  2903.542   -0.42
+  71   -34580.539    2001.000  -32085.029   20.000     0x1      0  FJ  #  3343.524    6.76
+  72   -36756.660    2000.000  -33998.391   20.000     0x1      0  FJ  #  2897.664   16.99
+  73   -39403.211    2000.000  -35195.281   20.000     0x1      0  FJ  #  2904.613   16.37
+  74   -42730.129    2000.000  -35660.820   20.000     0x1      0  FJ  #  3359.332   20.39
+  75   -45929.691    2000.000  -34955.699   20.000     0x1      0  FJ  #  3276.339   22.76
+  76   -48484.051    2001.000  -33154.539   20.000     0x1      0  FJ  #  3125.529   17.58
+  77   -50177.430    2001.000  -30926.410   20.000     0x1      0  FJ  #  2798.587   12.68
+  78   -51482.230    2000.000  -28070.230   20.000     0x1      0  FJ  #  3140.106   14.84
+  79   -52000.949    2000.000  -25038.930   20.000     0x1      0  FJ  #  3075.362   11.22
+  80   -51911.590    2000.000  -21658.359   20.000     0x1      0  FJ  #  3381.751   18.31
+  81   -51090.391    2000.000  -19380.641   20.000     0x1      0  FJ  #  2421.233   24.17
+  82   -48964.891    2000.000  -17179.609   20.000     0x1      0  FJ  #  3059.786   16.97
+  83   -46434.180    2001.000  -15775.140   20.000     0x1      0  FJ  #  2894.311    7.25
+  84   -42786.109    2000.000  -14317.380   20.000     0x1      0  FJ  #  3928.547   -2.49
+  85   -39071.770    2000.000  -12642.330   20.000     0x1      0  FJ  #  4074.569   -4.98
+  86   -35946.430    2000.000  -10891.720   20.000     0x1      0  FJ  #  3582.232   -9.10
+  87   -33332.789    2001.000   -8823.384   20.000     0x1      0  FJ  #  3333.036  -12.17
+  88   -30837.279    2318.000   -5793.131   20.000     0x2      0  FJ  #  3938.336  -11.22
+  89   -30191.020    2601.000   -4590.578   20.000     0x2    0x1  FJ  #  1394.229
+
+#
+###############################################################################
+
+[JGPT]
+# Respawn positions
+# KMP/JGPT syntax & semantics: https://szs.wiimm.de/doc/kmp/jgpt
+
+@REVISION           = 7680
+@JGPT-HEAD-VALUE    = 0
+@AUTO-ID            = 1
+
+# Activate automatic Y-correction (KCL fall)
+@KCL-FALL-WIDTH     =   0        # set to a value >0 (e.g. 200) to enable KCL falling
+@KCL-FALL-PRE-ADD   =   0        # add this height or vector before falling
+@KCL-FALL-POST-ADD  =   0        # add this height or vector after success
+@KCL-FALL-TYPES     = KCL$DRIVE  # bit field of recognized KCL types
+	# Best values are:
+	#  - KCL$BORDER: All KCL types except effects.
+	#  - KCL$DRIVE:  All driveable types like road, boost, ramp, water, ...
+
+# Snap to nearest point of the enemy route and add the vector.
+# Activate it with something like: vy(200) => 200 units higher than the enemy point
+@HSNAP-TO-ENPT      = $NONE      # horizontal snap without adjust, y-rotation
+@SNAP-TO-ENPT       = $NONE      # 3D snap, y-rotation
+@SNAP2-TO-ENPT      = $NONE      # 3D snap, x- and y-rotation
+
+# Show points in the track by using objects
+# Values: 0=off, -1=use default (block of ghost value), >0=force object with 'id'
+@ROUTE-OBJECT       = mode$showrt & 4 ? -1 : 0  
+@ROUTE-OBJECT-SHIFT = $NONE      # v3(0)  # add vector to position
+@ROUTE-OBJECT-SCALE = $NONE      # v3(1)  # define vector scale
+
+# Automatic definition of respawn points
+@AUTO-DEFINE	= 0		# 0 | SECT$ENPT | SECT$ITPT
+@AUTO-DISTANCE	= 1000.0	# minimal distance to other JGPT
+@AUTO-ADJUST	= vy(100)	# add this value to each auto-JGPT
+@AUTO-REMOVE	= 0		# 0|1|2
+
+# Column 'flag' is optional and only used internally.
+# Syntax:   FLAGS_STRING   or   '(' EXPRESSION ')'
+#   F (F$FALL): Point can be used for FALL-DOWN functionality.
+#   S (F$SNAP): Point can be used for SNAP functionality.
+# Remove the letter or replace it by '-' to disable a feature.
+# If the column is missed, all options are enabled by default.
+
+# If you enable EXPORT-FLAGS (set it to 1), the flags are exported using the
+# lowest byte of ROTATION.x. The rotation value needs only 4 or 5 digits, so
+# this has no disadvantage on the scale factors. 5 of the 8 bits are used to
+# verify changes by other tools on import. If at least 1 of these bits of all
+# points is wrong, import is canceled.
+@EXPORT-FLAGS = 0  # 0=disabled, 1=enabled (overridden by option --export-flags)
+
+#JGPT#
+#------------------------------------------------------------------------------------
+#      _____________position_____________ _______rotation________ related      flags
+# idx        x           y           z        x       y       z       id effect
+#------------------------------------------------------------------------------------
+   j0   22189.180    2001.000  -17844.850    0.00 -140.04    0.00      0 0xffff  FS
+   j1   19898.020    2001.000  -19691.551    0.00 -102.30    0.00      1 0xffff  FS
+   j2   10597.500    2001.000  -19291.801   -1.93  -83.76    0.00      2 0xffff  FS
+   j3     559.750    1401.000  -20887.910    0.00  -95.71    0.00      3 0xffff  FS
+   j4   -9750.510    1401.000  -21523.500    0.00  -94.26    0.00      4 0xffff  FS
+   j5  -14191.190    1401.000  -21838.660   -5.11  -97.04    0.00      5 0xffff  FS
+   j6  -25052.711    2001.000  -23633.641    0.00 -115.76    0.00      6 0xffff  FS
+   j7  -31028.680    2001.000  -27916.850    0.00 -139.64    0.00      7 0xffff  FS
+   j8  -39758.078    2001.000  -35208.691    0.00  -96.17    0.00      8 0xffff  FS
+   j9  -50043.789    2001.000  -30932.131    0.00  -23.33    0.00      9 0xffff  FS
+  j10  -51349.211    2001.000  -19814.471    0.00   36.59    0.00     10 0xffff  FS
+  j11  -39374.539    2001.000  -12558.830    0.00   62.31    0.00     11 0xffff  FS
+  j12  -33425.371    2001.000   -8812.478    0.00   40.75    0.00     12 0xffff  FS
+  j13  -27519.930    2001.000     201.250    0.00   28.71    0.00     13 0xffff  FS
+  j14  -20281.590    2001.000    7133.499    0.00   89.48    0.00     14 0xffff  FS
+  j15  -13133.960    2001.000    4643.899    0.00  134.81    0.00     15 0xffff  FS
+  j16    -196.520    2001.000    1858.902    0.00   60.65    0.00     16 0xffff  FS
+  j17    6126.476    2001.000    5752.262    0.00   66.07    0.00     17 0xffff  FS
+  j18   15563.050    2001.000    7242.802    0.00  101.52    0.00     18 0xffff  FS
+  j19   21409.160    2001.000    5427.113    0.00  144.74    0.00     19 0xffff  FS
+  j20   22791.430    2001.000   -1421.218    0.00  179.03    0.00     20 0xffff  FS
+  j21   22857.551    2001.000   -5317.287    0.00  179.16    0.00     21 0xffff  FS
+
+#
+###############################################################################
+
+[KTPT]
+# Kart Points: Starting positions of the racers
+# KMP/KTPT syntax & semantics: https://szs.wiimm.de/doc/kmp/ktpt
+
+@REVISION          = 7680
+@KTPT-HEAD-VALUE   = 0
+@KCL-FALL-WIDTH    =   0	# set to a value >0 (e.g. 200) to enable KCL falling
+@KCL-FALL-PRE-ADD  =   0	# add this height or vector before falling
+@KCL-FALL-POST-ADD =   0	# add this height or vector after success
+@KCL-FALL-TYPES    = KCL$DRIVE	# bit field of recognized KCL types
+	# Best values are:
+	#  - KCL$BORDER: All KCL types except effects.
+	#  - KCL$DRIVE:  All driveable types like road, boost, ramp, water, ...
+
+#KTPT#
+#--------------------------------------------------------------------------------
+#     _____________position______________  _______rotation_______  player
+#idx         x           y           z         x       y       z    index unknown
+#--------------------------------------------------------------------------------
+   0    22939.859    2000.000   -7480.105     0.00  180.00    0.00    -1      0
+
+#
+###############################################################################
+
+[MSPT]
+# End battle positions
+# KMP/MSPT syntax & semantics: https://szs.wiimm.de/doc/kmp/mspt
+
+@REVISION           = 7680
+@MSPT-HEAD-VALUE    = 0
+@AUTO-ID            = 1
+
+# Activate automatic Y-correction (KCL fall)
+@KCL-FALL-WIDTH     =   0        # set to a value >0 (e.g. 200) to enable KCL falling
+@KCL-FALL-PRE-ADD   =   0        # add this height or vector before falling
+@KCL-FALL-POST-ADD  =   0        # add this height or vector after success
+@KCL-FALL-TYPES     = KCL$DRIVE  # bit field of recognized KCL types
+	# Best values are:
+	#  - KCL$BORDER: All KCL types except effects.
+	#  - KCL$DRIVE:  All driveable types like road, boost, ramp, water, ...
+
+# Snap to nearest point of the enemy route and add the vector.
+# Activate it with something like: vy(200) => 200 units higher than the enemy point
+@HSNAP-TO-ENPT      = $NONE      # horizontal snap without adjust, y-rotation
+@SNAP-TO-ENPT       = $NONE      # 3D snap, y-rotation
+@SNAP2-TO-ENPT      = $NONE      # 3D snap, x- and y-rotation
+
+# Show points in the track by using objects
+# Values: 0=off, -1=use default (block of ghost value), >0=force object with 'id'
+@ROUTE-OBJECT       = mode$showrt & 16 ? -1 : 0  
+@ROUTE-OBJECT-SHIFT = $NONE      # v3(0)  # add vector to position
+@ROUTE-OBJECT-SCALE = $NONE      # v3(1)  # define vector scale
+
+#MSPT#
+#-------------------------------------------------------------------------------
+#      _____________position_____________ _______rotation________ related
+# idx        x           y           z        x       y       z       id effect
+#-------------------------------------------------------------------------------
+   m0   22939.859    2000.000   -7480.105    0.00  180.00    0.00      0      0
+
+#
+###############################################################################
+
+[POTI]
+# Routes
+# KMP/POTI syntax & semantics: https://szs.wiimm.de/doc/kmp/poti
+
+@REVISION        = 7680
+@AUTO-ROUTE-NAME = 0
+
+# If a route is closed, 3 global variables are defined for the route.
+# 'NAME' is a placeholder for the route name (before renaming happens):
+#   NAME.len      = Total route distance over all points.
+#   NAME.time     = Total route time in 1/60 seconds calculated by the sum of
+#                   all distances and the associated speed values.
+#   NAME.time.set = Same value as 'NAME.time' (but see below).
+
+# These 15 commands that are computed after closing a route in this order:
+#	@KCL-FALL-WIDTH     = CUBE_WIDTH
+#	@KCL-FALL-PRE-ADD   = HEIGHT_OR_VECTOR
+#	@KCL-FALL-POST-ADD  = HEIGHT_OR_VECTOR
+#	@KCL-FALL-TYPES     = TYPEMASK
+#	@XSS                = X1OLD,X1NEW, X2OLD,X2NEW
+#	@YSS                = Y1OLD,Y1NEW, Y2OLD,Y2NEW
+#	@ZSS		    = Z1OLD,Z1NEW, Z2OLD,Z2NEW
+#	@SCALE              = FACTOR [ORIGIN]
+#	@SHIFT              = DELTA
+#	@HROTATE            = DEGREE [ORIGIN]
+#	@REVERSE-ORDER	    = 0|1
+#	@SET-ROUTE-TIME     = SECONDS
+#	@ROUTE-OBJECT       = 0=OFF | -1=USE_DEFAULT_SETTINGS | >0=OBJECT_ID
+#	                    # Example: mode$showrt & 32 ? -1 : 0
+#	@ROUTE-OBJECT-SHIFT = VECTOR
+#	@ROUTE-OBJECT-SCALE = VECTOR
+# The commands are reset after closing a route.
+
+#POTI#
+#------------------------------------------------------#--------------------------
+#      _____________position_____________  value  un-  # seconds+distance   horiz
+#idx         x           y           z     1/60s known #      to next       angle
+#------------------------------------------------------#--------------------------
+
+ $ROUTE r0, settings: 1 0 # section 1
+	# CAME reference: c0
+
+   # @set-route-time = c0.came.time  # in 1/60 sec
+
+   0    -5600.949   10592.110  -21198.020   104     0  #   0.75  4681.064 -166.69
+   1     -944.529   10528.390  -20722.570   104     0  #   0.56  3521.379    1.49
+   2     2561.245   10331.640  -20456.211   104     0  #   0.39  2446.171    2.75
+   3     4987.282   10025.780  -20388.801   104     0  #   0.27  1711.473    4.83
+   4     6650.915    9635.130  -20482.920   104     0  #   0.21  1317.572    6.91
+   5     7869.481    9184.040  -20701.119   104     0  #   0.20  1232.978    5.46
+   6     8960.316    8696.824  -21005.971   104     0  #   0.23  1419.112   -0.16
+   7    10240.750    8197.822  -21360.039   104     0  #   0.28  1749.904   -6.77
+   8    11881.230    7642.664  -21610.609   104     0  #   0.33  2029.348  -14.07
+   9    13731.970    6828.649  -21436.260   104     0  #   0.36  2252.632  -12.00
+  10    15663.670    5840.139  -20831.500   104     0  #   0.38  2376.926  -11.32
+  11    17533.289    4788.398  -19807.711    52     0  #   0.77  2413.970  -11.99
+  12    19197.840    3784.685  -18376.250    26     0  #   1.54  2405.575  -13.54
+  13    20514.301    2940.262  -16548.500    13     0  #   3.12  2430.335  -15.31
+  14    21339.680    2366.394  -14335.820     6     0  #   7.13  2567.693  -16.09
+  15    21534.449    2173.001  -11782.840     1     0  # 498.85 29930.868 -113.50
+                                                 #TOTAL# 515.38 64486.999
+
+ $ROUTE r1, settings: 0 0 # section 2
+	# GOBJ reference: o191     type 0x191 = kuribo
+
+   0     -925.706    1400.000  -21848.100     0     0  #      -  2710.895   41.92
+   1     -687.730    1400.000  -19147.670     0     0  #      -  4205.251  163.59
+   2      141.562    1400.000  -23270.340     0     0  #      -  1778.153  154.49
+                                                 #TOTAL#   0.00  8694.299
+
+ $ROUTE r2, settings: 0 0 # section 3
+	# GOBJ reference: o192     type 0x191 = kuribo
+
+   0   -22139.439    2000.000    9192.381     0     0  #      -  4474.341  180.00
+   1   -20396.061    2000.000    5071.658     0     0  #      -  4474.341  180.00
+                                                 #TOTAL#   0.00  8948.682
+
+ $ROUTE r3, settings: 0 0 # section 4
+	# GOBJ reference: o193     type 0x191 = kuribo
+
+   0    13993.220    2000.000    7386.212     0     0  #      -  2331.503  -29.21
+   1    13277.850    2000.000    9605.255     0     0  #      -  3696.964 -168.71
+   2    13701.610    2000.000    5932.658     0     0  #      -  1482.516 -162.07
+                                                 #TOTAL#   0.00  7510.983
+
+ $ROUTE r4, settings: 0 0 # section 5
+	# GOBJ reference: o29      type  0xd8 = penguin_m
+
+   0   -19241.811    1150.000  -16077.840     0     0  #      -   680.056   69.16
+   1   -18629.340    1150.000  -16373.400     0     0  #      -   816.335   25.74
+   2   -18121.170    1150.000  -17012.279     0     0  #      -   852.094   23.33
+   3   -17898.221    1150.000  -17834.689     0     0  #      -   719.859   13.41
+   4   -17876.170    1150.000  -18554.211     0     0  #      -   830.364    3.55
+   5   -17902.109    1150.000  -19384.170     0     0  #      -   892.017   -1.15
+   6   -17912.131    1150.000  -20276.131     0     0  #      -   908.189   -5.05
+   7   -17842.289    1150.000  -21181.631     0     0  #      -   896.429   -9.37
+   8   -17628.689    1150.000  -22052.240     0     0  #      -   891.801   -9.04
+   9   -17282.699    1150.000  -22874.189     0     0  #      -   831.504   -1.84
+  10   -16935.641    1150.000  -23629.801     0     0  #      -   790.900    2.12
+  11   -16632.311    1150.000  -24360.221     0     0  #      -   779.748    6.44
+  12   -16415.980    1150.000  -25109.359     0     0  #      -   816.299   10.06
+  13   -16329.920    1150.000  -25921.109     0     0  #      -  1161.590   11.67
+  14   -16443.641    1150.000  -27077.119     0     0  #      -   873.118   14.93
+  15   -16750.119    1150.000  -27894.680     0     0  #      -   541.262   43.48
+  16   -17236.711    1150.000  -28131.730     0     0  #      -   626.165   44.61
+  17   -17830.029    1150.000  -27931.590     0     0  #      -   835.076   52.06
+  18   -18106.020    1150.000  -27143.439     0     0  #      -   955.319   18.92
+  19   -18112.301    1150.000  -26188.141     0     0  #      -   601.082   11.05
+  20   -18001.020    1150.000  -25597.449     0     0  #      -   620.610   -7.24
+  21   -17963.910    1150.000  -24977.949     0     0  #      -   896.056   -4.39
+  22   -17978.961    1150.000  -24082.020     0     0  #      -  1030.591   -2.54
+  23   -18042.010    1150.000  -23053.359     0     0  #      -  1023.253   -2.49
+  24   -18148.850    1150.000  -22035.699     0     0  #      -   875.307   -3.64
+  25   -18295.301    1150.000  -21172.730     0     0  #      -   639.377   -8.14
+  26   -18490.439    1150.000  -20563.859     0     0  #      -   846.841   -5.19
+  27   -18820.811    1150.000  -19784.119     0     0  #      -  1013.449    0.30
+  28   -19211.369    1150.000  -18848.949     0     0  #      -   992.751    1.42
+  29   -19571.109    1150.000  -17923.670     0     0  #      -   786.861    3.65
+  30   -19809.000    1150.000  -17173.631     0     0  #      -   574.887   19.21
+  31   -19792.850    1150.000  -16598.971     0     0  #      -   758.434   44.99
+                                                 #TOTAL#   0.00 26357.628
+
+ $ROUTE r5, settings: 1 0 # section 6
+	# GOBJ reference: o28      type  0xc9 = f_itembox
+
+   0   -22617.961    8123.117  -33320.301     6     0  #   7.05  2537.945 -110.30
+   1   -20212.631    8123.117  -32510.641     6     0  #   1.10   394.649   -0.02
+   2   -19838.650    8123.117  -32384.600   196     0  #   0.57  6720.433   -0.86
+   3   -19352.471    1422.501  -32212.590   196     0  #   0.03   374.991   -2.48
+   4   -19142.820    1123.302  -32128.061   100     0  #   0.07   446.228   -1.94
+   5   -18738.150    1066.618  -31948.760    50     0  #   0.15   445.283   -5.26
+   6   -18352.070    1013.573  -31733.340    25     0  #   0.30   452.105   -8.74
+   7   -17997.270     966.658  -31457.090    25     0  #   0.32   478.495  -11.43
+   8   -17686.490     928.363  -31095.279    25     0  #   0.36   536.768  -12.37
+   9   -17432.439     901.178  -30623.221    25     0  #   0.42   634.640  -11.37
+  10   -17247.820     887.593  -30016.180    25     0  #   0.41   621.595   -9.31
+  11   -17165.580     882.471  -29400.070    25     0  #   0.37   557.565   -9.56
+  12   -17184.641     864.210  -28843.131    25     0  #   0.37   554.241   -7.56
+  13   -17276.230     839.686  -28297.061    25     0  #   0.37   549.661   -5.66
+  14   -17420.061     818.342  -27766.980    25     0  #   0.36   538.534   -3.87
+  15   -17595.850     809.620  -27258.020    25     0  #   0.35   518.023   -2.17
+  16   -17783.311     822.960  -26775.289    25     0  #   0.33   487.574   -0.39
+  17   -17962.150     867.804  -26323.920    25     0  #   0.30   449.412    1.74
+  18   -18112.100     953.594  -25909.039    25     0  #   0.26   396.106    4.77
+  19   -18212.850    1039.771  -25535.779    26     0  #   0.28   436.962    6.92
+  20   -18269.529    1219.710  -25141.641    27     0  #   0.31   500.781    0.33
+  21   -18324.920    1513.537  -24739.920    28     0  #   0.30   503.700   -0.20
+  22   -18380.381    1824.603  -24347.650    28     0  #   0.30   502.182   -0.10
+  23   -18437.439    2124.551  -23948.949    27     0  #   0.31   498.727    0.00
+  24   -18497.670    2385.018  -23527.930    26     0  #   0.32   502.191    0.09
+  25   -18562.619    2577.644  -23068.721    25     0  #   0.35   527.102    0.15
+  26   -18633.830    2674.070  -22555.430    25     0  #   0.36   545.317    0.11
+  27   -18707.650    2643.988  -22015.971    25     0  #   0.38   566.036   -0.03
+  28   -18781.609    2486.015  -21477.480    25     0  #   0.39   590.380    0.11
+  29   -18853.551    2238.350  -20946.410    26     0  #   0.38   591.793    0.27
+  30   -18919.840    1940.584  -20439.301    27     0  #   0.35   562.122    0.49
+  31   -18976.789    1632.311  -19972.711    28     0  #   0.30   497.573    0.83
+  32   -19020.740    1353.120  -19563.199    29     0  #   0.20   354.643    1.48
+  33   -19048.020    1242.608  -19227.320    29     0  #   0.15   257.074    2.80
+  34   -19055.430    1129.267  -18996.699    28     0  #   0.11   192.663    1.11
+  35   -19057.619    1042.034  -18824.930    27     0  #   0.15   246.840   -1.86
+  36   -19068.461     983.073  -18585.480    26     0  #   0.19   304.198   -2.47
+  37   -19095.150     948.711  -18284.410    25     0  #   0.24   360.292   -2.87
+  38   -19144.881     935.273  -17927.820    25     0  #   0.28   413.866   -3.20
+  39   -19224.840     939.088  -17521.770    25     0  #   0.31   464.815   -3.50
+  40   -19342.230     956.480  -17072.359    25     0  #   0.34   513.687   -3.77
+  41   -19504.230     983.777  -16585.650    25     0  #   0.37   561.315   -4.02
+  42   -19718.051    1017.304  -16067.740    25     0  #   0.41   608.789   -4.24
+  43   -19990.869    1053.390  -15524.700    25     0  #   0.44   657.355   -4.42
+  44   -20329.891    1088.359  -14962.600    25     0  #   0.47   708.298   -4.55
+  45   -20742.301    1118.539  -14387.540    25     0  #   0.51   763.012   -4.62
+  46   -21235.301    1140.256  -13805.590    25     0  #   0.55   822.803   -4.63
+  47   -21816.080    1149.836  -13222.830    25     1  #   0.18   268.398   -3.96
+  48   -22018.211    1150.000  -13046.250   255     1  #   1.40 21448.105 -129.45
+                                                 #TOTAL#  24.13 53465.268
+
+#
+###############################################################################
+
+[STGI]
+# Stage information
+# KMP/STGI syntax & semantics: https://szs.wiimm.de/doc/kmp/stgi
+
+@REVISION        = 7680
+@STGI-HEAD-VALUE = 0
+
+#STGI#
+#-----------------------------------------------------------------------------
+# Write a floating point number (a '.' is mandatory) instead of the
+# 2 last bytes, and it will be rounded and accepted as speed modifier.
+#-----------------------------------------------------------------#-----------
+#     byte  byte  byte  byte      u32     byte   byte  byte byte  #  last 2
+#     laps  pole narrow flare    flare    flare  pad       or     # bytes as
+#idx  1..9  1=rt  if 1  1=on     color    alpha    0   speed mod  # speed mod
+#-----------------------------------------------------------------#-----------
+  s0     3    0     0     0     0xffffff  0x32     0      0    0  #    -
+
+#
+###############################################################################
+
+[END]
+# This section is ignored.
+

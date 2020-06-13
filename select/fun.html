@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Fun</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link type="text/css" rel="stylesheet" href="select.css">
+</head>
+
+<body>
+
+  <span id="info">Best Time (3 Laps): Best Split(1 Lap):</span>
+  <span id="title">Tiny Kart</span>
+
+  <div class="left-arrow" onclick="keydown({key:'ArrowLeft'})"></div>
+  <div class="right-arrow" onclick="keydown({key:'ArrowRight'})"></div>
+  <a id="track-name" class="track-name" href="google.com">Track Name</a>
+
+
+  <div id="container"></div>
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+			void main()	{
+				vUv = uv;
+				gl_Position = vec4( position, 1.0 );
+			}
+		</script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    varying vec2 vUv;
+			uniform float time;
+      uniform sampler2D map1;
+      uniform sampler2D map2;
+      uniform sampler2D mask;
+			void main()	{
+        vec4 col1 = texture2D(map1,vUv);
+        vec4 col2 = texture2D(map2,vUv);
+        float rat = clamp((texture2D(mask,vUv).r+0.8)*2.-time*5.,0.,1.);
+        float dist = ((0.5-vUv.x)*(0.5-vUv.x)+(0.5-vUv.y)*(0.5-vUv.y));
+				gl_FragColor = mix(col2,col1,rat)-vec4(vec3(dist*0.3),1.);
+			}
+    </script>
+  <script src='../lib/three.min.js'></script>
+  <script src='trackList.js'></script>
+  <script>
+    var container;
+    var camera, scene, renderer;
+    var uniforms;
+
+    var t = 0
+    var trackName = document.getElementById("track-name")
+    trackName.innerHTML = tracks[0].name;
+    trackName.href = "../Tiny%20Kart.html?s="+tracks[0].url;
+
+
+    var loader = new THREE.TextureLoader()
+    var tex = [];
+    var mask = loader.load("../thumb/transition1.jpg")
+    for (var i in tracks) tex[i] = loader.load("../thumb/" + tracks[i].thumb);
+
+
+    container = document.getElementById('container');
+    camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    scene = new THREE.Scene();
+    var geometry = new THREE.PlaneBufferGeometry(2, 2);
+    uniforms = {
+      time: {value: 1.0},
+      map1: {value: tex[tex.length - 1]},
+      map2: {value: tex[0]},
+      mask: {value: mask}
+    };
+    var material = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: document.getElementById('vertexShader').textContent,
+      fragmentShader: document.getElementById('fragmentShader').textContent
+    });
+    var mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+    onWindowResize();
+    window.addEventListener('resize', onWindowResize, false);
+
+    function onWindowResize() {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    //
+    var old = 0;
+    animate()
+
+    window.addEventListener('keydown', keydown)
+
+    function animate(timestamp) {
+      delta = timestamp - old
+      old = timestamp
+      material.uniforms["time"].value += delta / 1000;
+      renderer.render(scene, camera);
+
+      requestAnimationFrame(animate);
+    }
+
+    function keydown(e) {
+      if(material.uniforms["time"].value<0.6)return 0
+      material.uniforms["time"].value = 0
+      material.uniforms["map1"].value = tex[t]
+      trackName.classList.remove(".track-name");
+      trackName.classList.add("blank");
+      setTimeout(addBack,500);
+      //trackName2.classList.remove("blank")
+      if (e.key == "ArrowLeft") {
+        t = t > 0 ? t - 1 : tex.length - 2;
+      } else {
+        t++;
+      }
+      t = t % tex.length;
+      trackName.href = "../Tiny%20Kart.html?s="+tracks[t].url;
+      //trackName.innerHTML = tracks[t];
+      material.uniforms["map2"].value = tex[t]
+    }
+
+    function addBack(){
+      trackName.innerHTML = tracks[t].name;
+      trackName.classList.remove("blank");
+      trackName.classList.add("track-name");
+    }
+  </script>
+
+
+</body>
+
+</html>

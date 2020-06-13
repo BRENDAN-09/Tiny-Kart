@@ -1,0 +1,370 @@
+# Blender MTL File: 'coolcastle.blend'
+# Material Count: 34
+
+newmtl carpet_cn.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/carpet_cn.jpg
+
+newmtl dirt.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/Dirt 6 .jpg
+
+newmtl grass.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/proctextures/texture13.png
+
+newmtl grassLong_cn.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/grass_side.png
+
+newmtl leafs_cn.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/grass_side.png
+
+newmtl marble.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/proctextures/texture24.png
+
+newmtl marble_cn.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/proctextures/texture24.png
+
+newmtl roadSandStone.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/Dirt 6 .jpg
+
+newmtl rockEdgy.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/hp_marble.jpg
+
+newmtl rockOrange_m.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/crackedrock.png
+
+newmtl rockYellBlack.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/crackedrock.png
+
+newmtl roofBig_cn.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/Blue Roof.jpg
+
+newmtl roofGreen.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/Blue Roof.jpg
+
+newmtl sand.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/sand.jpg
+
+newmtl sandOrange.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/sand.jpg
+
+newmtl sandStone.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/sand_stone.jpg
+
+newmtl sandStoneBrick.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/sand_stone.jpg
+
+newmtl start.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/proctextures/texture5.png
+
+newmtl startSign.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+
+newmtl stoneDeco.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/proctextures/texture24.png
+
+newmtl stoneEdge.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.262724 0.139877
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/Ground_01.jpg
+
+newmtl stoneTile.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/Ground_01.jpg
+
+newmtl treeBark.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+
+newmtl windowMetal_cn.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/hp_glass_crystal.jpg
+
+newmtl windowSmall_cn.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+
+newmtl window_cn.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+
+newmtl woodDeco.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/wood.png
+
+newmtl woodEdge.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/woodt.png
+
+newmtl woodPlank.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/wood.png
+
+newmtl woodTrick.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+
+newmtl x_boost.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+
+newmtl x_water.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/proctextures/texture26c.png
+
+newmtl x_waterFlow.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/proctextures/texture26c.png
+
+newmtl x_waterFlow_cn.001
+Ns -3.921569
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni -1.000000
+d 1.000000
+illum 2
+map_Kd /Users/brendan/Desktop/untitled folder/halfdecenttextures/proctextures/texture26c.png

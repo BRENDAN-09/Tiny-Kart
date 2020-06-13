@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <link type="text/css" rel="stylesheet" href="./bad.css">
+    <title></title>
+  </head>
+  <body>
+    <h1>Mario Kart 9</h1>
+    <script>
+    var track = {
+        "Luigi Circuit " : "beginner_course",
+        "Moo Moo Meadows	": "farm_course",
+        "Mushroom Gorge	": "kinoko_course",
+        "Toad's Factory	": "factory_course",
+        "Mario Circuit	": "castle_course",
+        "Coconut Mall	": "shopping_course",
+        "DK Summit/DK Snowboard Cross	": "boardcross_course",
+        "Wario's Gold Mine	": "truck_course",
+        "Daisy Circuit	": "senior_course",
+        "Koopa Cape	": "water_course",
+        "Maple Treeway	": "treehouse_course",
+        "Grumble Volcano	": "volcano_course",
+        "Dry Dry Ruins	": "desert_course",
+        "Moonview Highway	": "ridgehighway_course",
+        "Bowser's Castle	": "koopa_course",
+        "Rainbow Road	": "rainbow_course",
+        "GCN Peach Beach	": "old_peach_gc",
+        "DS Yoshi Falls	": "old_falls_ds",
+        "SNES Ghost Valley 2	": "old_obake_sfc",
+        "N64 Mario Raceway	": "old_mario_64",
+        "N64 Sherbet Land	": "old_sherbet_64",
+        "GBA Shy Guy Beach	": "old_heyho_gba",
+        "DS Delfino Square	": "old_town_ds",
+        "GCN Waluigi Stadium	": "old_waluigi_gc",
+        "DS Desert Hills	": "old_desert_ds",
+        "GBA Bowser Castle 3	": "old_koopa_gba",
+        "N64 DK's Jungle Parkway	": "old_donkey_64",
+        "GCN Mario Circuit	": "old_mario_gc",
+        "SNES Mario Circuit 3	": "old_mario_sfc",
+        "DS Peach Gardens	": "old_garden_ds",
+        "GCN DK Mountain	": "old_donkey_gc",
+        "N64 Bowser's Castle	": "old_koopa_64"
+      }
+      for(var i in track){
+        console.log(i,track[i]);
+        document.write(`<a href=${"../Tiny%20Kart.html?s="+track[i]}>${i}</a>`)
+        document.write("<br>")
+      };
+    </script>
+  </body>
+</html>

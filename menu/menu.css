@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css?family=Pattaya&display=swap');
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+
+body {
+  background: orange;
+  margin: 0;
+  overflow: hidden;
+}
+
+a{
+  text-decoration: none;
+}
+
+#fun{
+  position: absolute;
+  text-align: center;
+	width: 100%;
+  top: 20%;
+  font-size: 60px;
+  color: rgb(51, 51, 51);
+  font-family: 'Pattaya', sans-serif;
+}
+
+#kart{
+  position: absolute;
+  text-align: center;
+	width: 100%;
+  top: 16%;
+  color: rgb(51, 51, 51);
+  font-size: 150px;
+  font-family: 'Pattaya', sans-serif;
+}
+
+#play{
+  color: rgb(51, 51, 51);
+  text-decoration: none;
+  text-align: center;
+  vertical-align: bottom;
+  font-size: 60px;
+  -webkit-transition:0.5s;
+  transition:0.5s;
+  font-family:shadows into light;
+  cursor:pointer;
+  font-family: 'Pattaya', sans-serif;
+}
+
+#options{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,0%);
+  padding: 20px;
+}
+
+#play:hover {
+  color:white;
+}
+
+.rotate {
+  position: absolute;
+  left: -10%;
+  top: -10%;
+  transform: translate(-50%,50%);
+  width: 120%;
+  height: 120%;
+  animation: rotation 8s infinite linear;
+}
+.rotate2{
+  animation: rotation 16s infinite linear;
+}

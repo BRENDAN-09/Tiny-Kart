@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>Xtractor</title>
+</head>
+
+<body>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: white;
+    }
+  </style>
+  <script src="./lineload.js"></script>
+
+  <canvas id = "canvas"></canvas>
+  <div id="container"></div>
+  <script>
+  var container = document.getElementById("container")
+    var line
+    var i = 0
+    loadLineList("./in.svg",function(lines){console.log(lines);line = lines})
+    //(a,b)--x-->>>>(c,d)---->>>(r,s) *** (e,f)--y-->>(g,h)---->>(r,s)
+    function intersect(e,f,r,s,a,b,p,q) {
+      var c = p-a, d = q-b, g=r-e, h = s-f;
+      var z = (c*h-d*g);
+      if (z == 0)return -1;
+      var x = -(a*h-b*g-e*h+f*g)/(c*h-d*g);
+      var y = -(a*d-b*c+c*f-d*e)/(c*h-d*g);
+      //console.log(a+x*c==e+y*g);//MUST BE TRUE!!!
+      //console.log(b+x*d==f+y*h);
+      return (x>0&&x<1&&y>0&&y<1)
+    };
+    var canvas = document.getElementById("canvas");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    var ctx = canvas.getContext("2d")
+    document.addEventListener("mousedown",function(e){
+      ctx.beginPath()
+      console.log(line[i][0],line[i][1]);
+      ctx.moveTo(-line[i][0],-line[i][1])
+      ctx.lineTo(-line[i][2],-line[i][3])
+      ctx.stroke();
+      i++
+    })
+  </script>
+  <h1>Hello!</h1>
+</body>
+
+</html>

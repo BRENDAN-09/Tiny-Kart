@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>Shadow</title>
+  <link type="text/css" rel="stylesheet" href="main.css">
+</head>
+
+<body>
+  <script src="lib/three.min.js"></script>
+  <script src="lib/GLTFLoader.js"></script>
+  <script src="script/orbit.js"></script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+      uniform sampler2D map;
+      uniform sampler2D shadowMap;
+			varying vec2 vUv;
+      varying vec2 vUv2;
+			void main( void ) {
+        vec4 basCol = texture2D(map,vUv);
+        vec4 shadowCol = texture2D(shadowMap,vUv2);
+				gl_FragColor = vec4(basCol*shadowCol);
+			}
+		</script>
+
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+      attribute vec2 uv2;
+      varying vec2 vUv;
+      varying vec2 vUv2;
+			void main()
+			{
+				vUv = uv;
+        vUv2 = uv2;
+				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+				gl_Position = projectionMatrix * mvPosition;
+			}
+		</script>
+
+  <script src="experimental/shadow.js"></script>
+</body>
+</html>
